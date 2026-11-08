@@ -1,0 +1,33 @@
+# Netlify (offre gratuite) : héberge uniquement la PWA. Les données sont servies par GitHub Pages.
+# Les collectes écrivent sur la branche `data` et sur Pages : elles ne déclenchent aucun build Netlify.
+[build]
+  base = "."
+  command = "pnpm install --frozen-lockfile && pnpm --filter @findimmo/web build"
+  publish = "apps/web/dist"
+  # Ne reconstruire que si le frontend change (économise les minutes de build).
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- apps/web packages/shared pnpm-lock.yaml netlify.toml"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Adresse des données publiées. À définir dans l'interface Netlify (Site configuration > Environment
+  # variables), ex. VITE_DATA_URL=https://<utilisateur>.github.io/<depot>/ ; sinon : jeu de démo fictif.
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
