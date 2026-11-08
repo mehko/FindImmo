@@ -1,0 +1,96 @@
+{
+  "$defs": {
+    "EventType": {
+      "enum": [
+        "new",
+        "price_drop",
+        "price_increase",
+        "features_changed",
+        "unavailable",
+        "reappeared",
+        "gone"
+      ],
+      "title": "EventType",
+      "type": "string"
+    },
+    "ListingEvent": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/EventType"
+        },
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "listing_id": {
+          "title": "Listing Id",
+          "type": "string"
+        },
+        "property_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Id"
+        },
+        "department": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Department"
+        },
+        "old": {
+          "default": null,
+          "title": "Old"
+        },
+        "new": {
+          "default": null,
+          "title": "New"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "at",
+        "listing_id"
+      ],
+      "title": "ListingEvent",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "generated_at": {
+      "title": "Generated At",
+      "type": "string"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/ListingEvent"
+      },
+      "title": "Events",
+      "type": "array"
+    }
+  },
+  "required": [
+    "generated_at",
+    "events"
+  ],
+  "title": "EventsFile",
+  "type": "object",
+  "$comment": "Généré par `python -m collector schema` — format_version 1"
+}

@@ -1,0 +1,12 @@
+# Départements couverts par FindImmo.
+# Ajouter un département : ajouter une entrée ici puis lancer `python -m collector refresh-geo`.
+departments:
+  - { code: "75", name: "Paris", region: "Île-de-France" }
+  - { code: "77", name: "Seine-et-Marne", region: "Île-de-France" }
+  - { code: "78", name: "Yvelines", region: "Île-de-France" }
+  - { code: "91", name: "Essonne", region: "Île-de-France" }
+  - { code: "92", name: "Hauts-de-Seine", region: "Île-de-France" }
+  - { code: "93", name: "Seine-Saint-Denis", region: "Île-de-France" }
+  - { code: "94", name: "Val-de-Marne", region: "Île-de-France" }
+  - { code: "95", name: "Val-d'Oise", region: "Île-de-France" }
+  - { code: "83", name: "Var", region: "Provence-Alpes-Côte d'Azur" }

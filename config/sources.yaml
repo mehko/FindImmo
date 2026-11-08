@@ -1,0 +1,125 @@
+# Registre des sources FindImmo.
+#
+# Champs : voir collector/config.py (SourceConfig) et docs/SOURCES.md.
+# Statut de compatibilité : compatible | partial | pending_validation | blocked | incompatible | fixture
+# Seules les sources `enabled: true` sont collectées. robots.txt est toujours respecté.
+# Évaluations du 2026-11-08 (voir docs/SOURCES.md pour le détail).
+
+sources:
+  # --------------------------------------------------------------------------- sources actives
+  - id: citya
+    name: Citya Immobilier
+    domain: www.citya.com
+    url: https://www.citya.com
+    network: Citya
+    cms: propriétaire (Symfony) — JSON-LD schema.org RealEstateListing
+    method: sitemap_jsonld
+    enabled: true
+    compatibility: compatible
+    rate_limit_seconds: 1.5
+    max_details_per_run: 250
+    refresh_days: 3
+    options:
+      sitemaps:
+        - https://www.citya.com/sitemap.vente.xml
+        - https://www.citya.com/sitemap.location.xml
+      # Le code postal est dans l'URL : pré-filtrage géographique sans requête.
+      url_pattern: 'citya\.com/annonces/(?P<transaction>vente|location)/[^/]+/[^/]+-(?P<postal_code>\d{5})/(?P<ref>[A-Za-z0-9-]+)$'
+      transaction_from_url:
+        /annonces/vente/: sale
+        /annonces/location/: rent
+      # Certaines annonces (parkings, nouvelles annonces) n'ont pas de JSON-LD : lecture des balises.
+      fallback_fields:
+        title: { selector: "meta[property='og:title']", attr: content }
+        price: { selector: "meta[property='og:title']", attr: content, regex: '- ([\d\s  ]+)€' }
+        city: { selector: "meta[property='og:title']", attr: content, regex: '- ([^-]+?) \(\d{2,3}\)' }
+        image: { selector: "meta[property='og:image']", attr: content }
+        latitude: { selector: "[data-latitude]", attr: data-latitude }
+        longitude: { selector: "[data-longitude]", attr: data-longitude }
+    notes: >
+      JSON-LD complet (prix, surface, pièces, GPS, DPE/GES, équipements). Les booléens « false » des
+      équipements sont parfois faux (ex. cave mentionnée dans la description) : ignorés.
+
+  - id: laforet
+    name: Laforêt Immobilier (réseau)
+    domain: www.laforet.com
+    url: https://www.laforet.com
+    network: Laforêt
+    cms: plateforme réseau Laforêt (Laravel/Stimulus)
+    method: adapter
+    adapter: laforet
+    enabled: true
+    compatibility: partial
+    rate_limit_seconds: 1.5
+    max_details_per_run: 250
+    refresh_days: 4
+    options:
+      sitemaps:
+        - https://www.laforet.com/storage/sitemaps/produits.xml
+    notes: >
+      Données structurées dans le dataLayer ; DPE uniquement sous forme d'image (non extrait).
+      Pré-filtrage par slug de commune dans l'URL.
+
+  # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
+  # (commande `python -m collector demo`) et ne sont jamais collectées en production.
+
+  # --------------------------------------------------------------------------- évaluées, inactives
+  - id: century21
+    name: Century 21 France
+    domain: www.century21.fr
+    url: https://www.century21.fr
+    network: Century 21
+    method: sitemap_jsonld
+    enabled: false
+    compatibility: incompatible
+    notes: >
+      Sitemap accessible (~35 000 annonces nationales) mais URL sans localisation et pages détail
+      sans JSON-LD : il faudrait télécharger toutes les pages de France. Adaptateur HTML à écrire.
+
+  - id: capifrance
+    name: Capifrance
+    domain: www.capifrance.fr
+    url: https://www.capifrance.fr
+    method: sitemap_jsonld
+    enabled: false
+    compatibility: blocked
+    notes: Protection Cloudflare (challenge JavaScript) sur le sitemap. Non contourné.
+
+  - id: stephaneplaza
+    name: Stéphane Plaza Immobilier
+    domain: www.stephaneplazaimmobilier.com
+    url: https://www.stephaneplazaimmobilier.com
+    method: html
+    enabled: false
+    compatibility: blocked
+    notes: 403 sur robots.txt → considéré comme interdit.
+
+  - id: safti
+    name: SAFTI
+    domain: www.safti.fr
+    url: https://www.safti.fr
+    method: html
+    enabled: false
+    compatibility: blocked
+    notes: 403 sur robots.txt → considéré comme interdit.
+
+  - id: iad
+    name: iad France
+    domain: www.iadfrance.fr
+    url: https://www.iadfrance.fr
+    method: sitemap_jsonld
+    enabled: false
+    compatibility: pending_validation
+    options:
+      sitemaps: [https://www.iadfrance.fr/sitemap/fr/ads.xml]
+      url_pattern: 'iadfrance\.fr/annonce/[a-z]+-(?P<transaction>vente|location)-[^/]*?-(?P<city>[a-z-]+)-\d+m2/(?P<ref>r\d+)$'
+    notes: Sitemap avec commune dans l'URL ; extraction de la page détail non évaluée.
+
+  - id: guyhoquet
+    name: Guy Hoquet
+    domain: www.guy-hoquet.com
+    url: https://www.guy-hoquet.com
+    method: sitemap_jsonld
+    enabled: false
+    compatibility: pending_validation
+    notes: sitemap-index accessible ; structure des pages détail non évaluée.

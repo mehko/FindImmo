@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dist/
+dev-dist/
+coverage/
+*.log
+.DS_Store
+# Données de travail générées localement (l'état réel vit sur la branche `data`)
+data/state/
+data/raw/
+data/public/
+.env
+.env.local
+.netlify/

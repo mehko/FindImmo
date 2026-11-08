@@ -1,0 +1,145 @@
+{
+  "$defs": {
+    "DepartmentEntry": {
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "bytes": {
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "region": {
+          "title": "Region",
+          "type": "string"
+        },
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256",
+        "code",
+        "name",
+        "region",
+        "count"
+      ],
+      "title": "DepartmentEntry",
+      "type": "object"
+    },
+    "FileRef": {
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "bytes": {
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "FileRef",
+      "type": "object"
+    },
+    "ManifestFiles": {
+      "properties": {
+        "events": {
+          "$ref": "#/$defs/FileRef"
+        },
+        "sources": {
+          "$ref": "#/$defs/FileRef"
+        },
+        "report": {
+          "$ref": "#/$defs/FileRef"
+        },
+        "communes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FileRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "events",
+        "sources",
+        "report"
+      ],
+      "title": "ManifestFiles",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "format_version": {
+      "title": "Format Version",
+      "type": "integer"
+    },
+    "data_version": {
+      "title": "Data Version",
+      "type": "string"
+    },
+    "generated_at": {
+      "title": "Generated At",
+      "type": "string"
+    },
+    "demo": {
+      "title": "Demo",
+      "type": "boolean"
+    },
+    "total_listings": {
+      "title": "Total Listings",
+      "type": "integer"
+    },
+    "departments": {
+      "items": {
+        "$ref": "#/$defs/DepartmentEntry"
+      },
+      "title": "Departments",
+      "type": "array"
+    },
+    "files": {
+      "$ref": "#/$defs/ManifestFiles"
+    }
+  },
+  "required": [
+    "format_version",
+    "data_version",
+    "generated_at",
+    "demo",
+    "total_listings",
+    "departments",
+    "files"
+  ],
+  "title": "Manifest",
+  "type": "object",
+  "$comment": "Généré par `python -m collector schema` — format_version 1"
+}

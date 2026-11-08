@@ -1,0 +1,455 @@
+{
+  "$defs": {
+    "ListingStatus": {
+      "enum": [
+        "active",
+        "unavailable_unconfirmed",
+        "gone"
+      ],
+      "title": "ListingStatus",
+      "type": "string"
+    },
+    "PricePoint": {
+      "properties": {
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "price": {
+          "title": "Price",
+          "type": "number"
+        }
+      },
+      "required": [
+        "at",
+        "price"
+      ],
+      "title": "PricePoint",
+      "type": "object"
+    },
+    "PropertyType": {
+      "enum": [
+        "apartment",
+        "house",
+        "land",
+        "parking",
+        "commercial",
+        "building",
+        "other"
+      ],
+      "title": "PropertyType",
+      "type": "string"
+    },
+    "Provenance": {
+      "enum": [
+        "extracted",
+        "parsed",
+        "computed",
+        "estimated"
+      ],
+      "title": "Provenance",
+      "type": "string"
+    },
+    "PublicListing": {
+      "description": "Annonce publiée : ``maybe_same`` liste les doublons possibles (non fusionnés).",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_ref": {
+          "title": "Source Ref",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "transaction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TransactionType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "property_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PropertyType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price"
+        },
+        "price_per_m2": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price Per M2"
+        },
+        "surface": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface"
+        },
+        "land_surface": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Land Surface"
+        },
+        "rooms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rooms"
+        },
+        "bedrooms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bedrooms"
+        },
+        "city": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "City"
+        },
+        "postal_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Postal Code"
+        },
+        "insee_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Insee Code"
+        },
+        "department": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Department"
+        },
+        "latitude": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latitude"
+        },
+        "longitude": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Longitude"
+        },
+        "dpe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dpe"
+        },
+        "ges": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ges"
+        },
+        "features": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Features",
+          "type": "object"
+        },
+        "provenance": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Provenance"
+          },
+          "title": "Provenance",
+          "type": "object"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        },
+        "agency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agency"
+        },
+        "published_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Published At"
+        },
+        "first_seen_at": {
+          "title": "First Seen At",
+          "type": "string"
+        },
+        "last_seen_at": {
+          "title": "Last Seen At",
+          "type": "string"
+        },
+        "last_fetched_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Fetched At"
+        },
+        "status": {
+          "$ref": "#/$defs/ListingStatus",
+          "default": "active"
+        },
+        "unseen_count": {
+          "default": 0,
+          "title": "Unseen Count",
+          "type": "integer"
+        },
+        "unseen_since": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unseen Since"
+        },
+        "price_history": {
+          "items": {
+            "$ref": "#/$defs/PricePoint"
+          },
+          "title": "Price History",
+          "type": "array"
+        },
+        "property_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Property Id"
+        },
+        "is_demo": {
+          "default": false,
+          "title": "Is Demo",
+          "type": "boolean"
+        },
+        "maybe_same": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Maybe Same",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "source_id",
+        "source_ref",
+        "url",
+        "first_seen_at",
+        "last_seen_at"
+      ],
+      "title": "PublicListing",
+      "type": "object"
+    },
+    "TransactionType": {
+      "enum": [
+        "sale",
+        "rent"
+      ],
+      "title": "TransactionType",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "department": {
+      "title": "Department",
+      "type": "string"
+    },
+    "generated_at": {
+      "title": "Generated At",
+      "type": "string"
+    },
+    "listings": {
+      "items": {
+        "$ref": "#/$defs/PublicListing"
+      },
+      "title": "Listings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "department",
+    "generated_at",
+    "listings"
+  ],
+  "title": "DepartmentFile",
+  "type": "object",
+  "$comment": "Généré par `python -m collector schema` — format_version 1"
+}

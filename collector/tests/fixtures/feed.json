@@ -1,0 +1,5 @@
+{"data": {"listings": [
+  {"id": 501, "lien": "https://flux.example/annonce/501", "prix": 210000, "surface": 48, "ville": "Toulon", "cp": 83000, "type": "Appartement", "transaction": "vente", "pieces": 2},
+  {"id": 502, "lien": "https://flux.example/annonce/502", "prix": 1100, "surface": 40, "ville": "Montreuil", "cp": "93100", "type": "appartement", "transaction": "location", "pieces": 2},
+  {"id": 503, "prix": 99000}
+]}}
