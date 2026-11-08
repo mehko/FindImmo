@@ -33,6 +33,8 @@ class FakeSite:
         url = str(request.url)
         self.hits[url] = self.hits.get(url, 0) + 1
         status, body = self.pages.get(url, (404, "not found"))
+        if status in (301, 302):
+            return httpx.Response(status, headers={"Location": body})
         return httpx.Response(status, text=body)
 
     def client(self) -> PoliteClient:

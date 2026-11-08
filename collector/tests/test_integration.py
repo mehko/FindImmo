@@ -112,3 +112,46 @@ def test_stops_after_consecutive_unparseable_pages(tmp_path, geo, departments, s
     assert b.status.details_failed == 10
     assert b.status.errors[0].startswith("arrêt")
     assert "Accès restreint" in b.status.errors[1]
+
+
+def test_removed_listings_redirect_and_intermittent_soft_404(tmp_path, geo, departments, settings):
+    """Redirection (Laforêt) = annonce retirée. Page de liste en 200 (Citya) = échec temporaire, retenté."""
+    refs = [("OK1", "meaux", "77100"), ("RED", "meaux", "77100"), ("SOFT", "meaux", "77100")]
+    catalog = ('<html><title>Achat/vente immobilière Meaux</title><script type="application/ld+json">'
+               '{"@type":"OfferCatalog","itemListElement":[]}</script></html>')
+    soft = f"{BASE}/annonces/vente/maison/meaux-77100/SOFT"
+    site = FakeSite({
+        f"{BASE}/sitemap.xml": sitemap(refs),
+        f"{BASE}/annonces/vente/maison/meaux-77100/OK1": page("OK1", 200000, "Meaux", "77100"),
+        f"{BASE}/annonces/vente/maison/meaux-77100/RED": (301, f"{BASE}/ville/meaux"),
+        f"{BASE}/ville/meaux": "<html><title>Maisons à vendre à Meaux</title></html>",
+        soft: catalog,
+    })
+    src = make_source(options={"sitemaps": [f"{BASE}/sitemap.xml"], "url_pattern": PATTERN})
+    deps = load_departments()
+    state_dir = tmp_path / "state"
+
+    def cycle(now):
+        [b] = run_collect([src], geo, departments, State.load(state_dir), settings, tmp_path / "raw", client=site.client())
+        run_process(tmp_path / "raw", state_dir, tmp_path / "public", [src], deps, geo, settings, now=now)
+        return b
+
+    b = cycle("2026-11-01T00:00:00Z")
+    assert (b.status.details_fetched, b.status.removed, b.status.details_failed) == (1, 1, 1)
+    assert site.hits[soft] == 2  # un nouvel essai dans la même collecte
+    assert "page de liste reçue" in b.status.errors[0]
+
+    # Collecte suivante : la page redirigée n'est plus demandée, la page de liste est retentée et réussit
+    site.set(soft, page("SOFT", 180000, "Meaux", "77100"))
+    red_hits = site.hits[f"{BASE}/annonces/vente/maison/meaux-77100/RED"]
+    b2 = cycle("2026-11-02T00:00:00Z")
+    assert b2.status.removed == 0 and not b2.status.errors
+    assert "SOFT" in {x.source_ref for x in State.load(state_dir).listings.values()}
+    assert site.hits[f"{BASE}/annonces/vente/maison/meaux-77100/RED"] == red_hits
+
+    # Une annonce connue qui devient redirigée passe en « non retrouvée » (pas « vendue »)
+    site.set(f"{BASE}/annonces/vente/maison/meaux-77100/OK1", (301, f"{BASE}/ville/meaux"))
+    src.refresh_days = 0
+    cycle("2026-11-03T00:00:00Z")
+    st = State.load(state_dir)
+    assert sorted(x.status.value for x in st.listings.values()) == ["active", "unavailable_unconfirmed"]

@@ -18,11 +18,16 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from dataclasses import dataclass, field
+from urllib.parse import urlsplit
 
 from ..config import SourceConfig
 from ..geo import GeoIndex, department_from_postal_code
-from ..http import PlaywrightRenderer, PoliteClient
+from ..http import ListingRemoved, PlaywrightRenderer, PoliteClient
 from ..models import ListingRef, RawListing
+
+
+def _path(url: str) -> str:
+    return urlsplit(url).path.rstrip("/")
 
 
 def page_signature(html: str) -> str:
@@ -76,7 +81,11 @@ class BaseConnector(ABC):
                 self.ctx.renderer = PlaywrightRenderer(self.ctx.client)
             text = self.ctx.renderer.render(url, self.options.get("wait_selector")).text
         else:
-            text = self.ctx.client.get(url).text
+            result = self.ctx.client.get(url)
+            text = result.text
+            if _path(result.url) != _path(url):
+                # Une page détail redirigée ailleurs (ville, recherche…) n'existe plus.
+                raise ListingRemoved(url, f"redirigée vers {result.url}")
         self.last_page_info = page_signature(text)
         return text
 

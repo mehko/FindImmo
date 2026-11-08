@@ -56,7 +56,8 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
     scope = departments & set(source.departments or departments)
     ctx = ConnectorContext(client=client, geo=geo, departments=scope, deadline=started + source.max_run_seconds)
     client.set_delay(source.domain, source.rate_limit_seconds)
-    out_of_scope = state.source_refs(source.id).out_of_scope
+    refs_state = state.source_refs(source.id)
+    skip = refs_state.out_of_scope.keys() | refs_state.removed.keys()
 
     try:
         connector = build_connector(source, ctx)
@@ -70,7 +71,7 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
         discovery_complete = True
         for ref in connector.discover():
             status.refs_discovered += 1
-            if ref.source_ref in out_of_scope or connector.ref_in_scope(ref) is False:
+            if ref.source_ref in skip or connector.ref_in_scope(ref) is False:
                 continue
             in_scope.append(ref)
             if ctx.time_left() < source.max_run_seconds * 0.5:
@@ -113,7 +114,10 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
             break
         except FetchError as exc:
             if exc.status in (404, 410):
-                gone_refs.add(ref.source_ref)  # page détail supprimée : l'annonce n'est plus « vue »
+                # Page détail supprimée ou redirigée : l'annonce n'est plus « vue » et n'est plus
+                # retéléchargée pendant 30 jours (le sitemap de la source peut être en retard).
+                gone_refs.add(ref.source_ref)
+                status.removed += 1
             else:
                 status.details_failed += 1
                 status.errors.append(str(exc))
@@ -141,6 +145,7 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
     known = {r.source_ref for r in in_scope if listing_id(source.id, r.source_ref) in state.listings}
     fetched_refs = {r.source_ref for r in batch.listings}
     batch.seen_refs = sorted((known | fetched_refs) - gone_refs)
+    batch.removed_refs = sorted(gone_refs)
     status.backlog = sum(1 for r in in_scope if r.source_ref not in known and r.source_ref not in fetched_refs)
     status.ok = status.refs_discovered > 0 or status.discovery_complete
     if status.refs_discovered == 0 and not status.errors:

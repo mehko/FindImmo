@@ -71,14 +71,14 @@ def report_markdown(report: dict[str, Any]) -> str:
         f"* Non retrouvées : {report['unavailable']} — réapparues : {report['reappeared']} — retirées : {report['gone']}",
         f"* Doublons : {report['duplicate_groups']} groupes fusionnés, {report['possible_duplicates']} possibles",
         "",
-        "| Source | OK | Découvertes | Dans la zone | Détails | Échecs | En attente | Erreurs |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Source | OK | Découvertes | Dans la zone | Détails | Retirées | Échecs | En attente | Erreurs |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for s in report["sources"]:
         err = (s["errors"][0][:80] + "…") if s["errors"] else ""
         lines.append(
             f"| {s['source_id']} | {'✅' if s['ok'] else '❌'} | {s['refs_discovered']} | {s['refs_in_scope']} | "
-            f"{s['details_fetched']} | {s['details_failed']} | {s['backlog']} | {err} |"
+            f"{s['details_fetched']} | {s.get('removed', 0)} | {s['details_failed']} | {s['backlog']} | {err} |"
         )
     return "\n".join(lines) + "\n"
 

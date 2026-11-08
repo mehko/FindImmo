@@ -32,6 +32,13 @@ class FetchError(Exception):
         self.status = status
 
 
+class ListingRemoved(FetchError):
+    """Annonce retirée : redirection vers une autre page ou « soft 404 » (page de liste en 200)."""
+
+    def __init__(self, url: str, reason: str = "annonce retirée"):
+        super().__init__(url, reason, 410)
+
+
 class DisallowedByRobots(FetchError):
     def __init__(self, url: str):
         super().__init__(url, "interdit par robots.txt")

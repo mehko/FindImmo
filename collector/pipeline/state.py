@@ -25,6 +25,7 @@ class RefInfo(BaseModel):
 class SourceRefs(BaseModel):
     fetched: dict[str, RefInfo] = Field(default_factory=dict)
     out_of_scope: dict[str, str] = Field(default_factory=dict)  # ref → date de constat
+    removed: dict[str, str] = Field(default_factory=dict)  # annonces retirées (page supprimée/redirigée)
 
 
 class SourceState(BaseModel):

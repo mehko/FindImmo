@@ -115,6 +115,8 @@ class Tracker:
         scope = self.departments & set(source.departments or self.departments)
         for ref in batch.out_of_scope_refs:
             refs.out_of_scope[ref] = self.now[:10]
+        for ref in batch.removed_refs:
+            refs.removed[ref] = self.now[:10]
         for raw in batch.listings:
             values = normalize(raw, source, self.geo)
             if values["department"] not in scope:
@@ -218,6 +220,6 @@ class Tracker:
         events_before = now - timedelta(days=self.settings.events_retention_days)
         self.state.events = [e for e in self.state.events if parse_iso(e.at) >= events_before]
         for refs in self.state.refs.values():
-            refs.out_of_scope = {
-                r: d for r, d in refs.out_of_scope.items() if parse_iso(d + "T00:00:00Z") >= now - timedelta(days=30)
-            }
+            keep_after = now - timedelta(days=30)
+            refs.out_of_scope = {r: d for r, d in refs.out_of_scope.items() if parse_iso(d + "T00:00:00Z") >= keep_after}
+            refs.removed = {r: d for r, d in refs.removed.items() if parse_iso(d + "T00:00:00Z") >= keep_after}

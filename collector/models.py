@@ -209,6 +209,7 @@ class SourceRunStatus(BaseModel):
     refs_in_scope: int = 0
     details_fetched: int = 0
     details_failed: int = 0
+    removed: int = 0  # pages détail supprimées ou redirigées (annonces retirées)
     backlog: int = 0
     errors: list[str] = Field(default_factory=list)
 
@@ -220,4 +221,5 @@ class SourceBatch(BaseModel):
     seen_refs: list[str] = Field(default_factory=list)
     listings: list[RawListing] = Field(default_factory=list)
     out_of_scope_refs: list[str] = Field(default_factory=list)
+    removed_refs: list[str] = Field(default_factory=list)
     lastmods: dict[str, str] = Field(default_factory=dict)

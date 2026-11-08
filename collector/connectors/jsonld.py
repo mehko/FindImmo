@@ -225,6 +225,20 @@ class JsonLdConnector(SitemapConnector):
         return raw
 
 
+    def fetch_detail(self, ref: ListingRef) -> RawListing | None:
+        """Certains sites servent par intermittence une page de liste à la place de l'annonce
+        (observé chez Citya, HTTP 200). Ce n'est pas une preuve de retrait : on retente une fois ;
+        en cas de nouvel échec, l'annonce sera retentée à la collecte suivante, sans changer son statut."""
+        html = self.fetch_page(ref.url)
+        raw = self.parse_detail(html, ref)
+        if raw is None and _is_listing_page(html):
+            self.ctx.client._sleep(float(self.options.get("retry_delay_seconds", 5)))
+            html = self.fetch_page(ref.url)
+            raw = self.parse_detail(html, ref)
+            if raw is None and _is_listing_page(html):
+                self.last_page_info = f"page de liste reçue à la place de l'annonce (2 essais) — {self.last_page_info}"
+        return raw
+
     def _fallback(self, html: str, ref: ListingRef) -> RawListing | None:
         """Repli HTML (``options.fallback_fields``) pour les pages sans JSON-LD.
 
@@ -251,3 +265,7 @@ class JsonLdConnector(SitemapConnector):
             parsed_fields=[k for k in values if k not in ("title", "image", "description", "postal_code")],
             **values,
         )
+
+
+def _is_listing_page(html: str) -> bool:
+    return any(_types(o) & {"offercatalog", "itemlist", "searchresultspage"} for o in extract_jsonld(html))
