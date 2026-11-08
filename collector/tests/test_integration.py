@@ -100,3 +100,15 @@ def test_shards_partition_sources():
     ids = [f"s{i}" for i in range(20)]
     parts = [{s for s in ids if shard_of(s, 3) == k} for k in range(3)]
     assert set().union(*parts) == set(ids) and sum(len(p) for p in parts) == 20
+
+
+def test_stops_after_consecutive_unparseable_pages(tmp_path, geo, departments, settings):
+    refs = [(f"R{i}", "meaux", "77100") for i in range(15)]
+    site = FakeSite({f"{BASE}/sitemap.xml": sitemap(refs)})
+    for ref, slug, cp in refs:
+        site.set(f"{BASE}/annonces/vente/maison/{slug}-{cp}/{ref}", "<html><title>Accès restreint</title></html>")
+    src = make_source(options={"sitemaps": [f"{BASE}/sitemap.xml"], "url_pattern": PATTERN}, max_details_per_run=50)
+    [b] = run_collect([src], geo, departments, State(tmp_path), settings, tmp_path / "raw", client=site.client())
+    assert b.status.details_failed == 10
+    assert b.status.errors[0].startswith("arrêt")
+    assert "Accès restreint" in b.status.errors[1]

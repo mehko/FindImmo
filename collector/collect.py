@@ -30,6 +30,8 @@ from .pipeline.tracker import now_iso, parse_iso
 
 logger = get_logger(__name__)
 
+MAX_CONSECUTIVE_EMPTY = 10
+
 
 def shard_of(source_id: str, total: int) -> int:
     return int(hashlib.sha1(source_id.encode()).hexdigest(), 16) % total
@@ -99,6 +101,7 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
     queue.sort(key=lambda item: item[0])
 
     fetched = 0
+    consecutive_empty = 0
     for _prio, ref in queue:
         if fetched >= source.max_details_per_run or ctx.time_left() <= 0:
             break
@@ -121,8 +124,15 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
             continue
         if raw is None:
             status.details_failed += 1
-            status.errors.append(f"aucune donnée exploitable : {ref.url}")
+            consecutive_empty += 1
+            status.errors.append(f"aucune donnée exploitable : {ref.url} [{connector.last_page_info}]")
+            if consecutive_empty >= MAX_CONSECUTIVE_EMPTY:
+                # Pages systématiquement inexploitables : blocage probable ou refonte du site.
+                status.errors.insert(0, f"arrêt : {consecutive_empty} pages inexploitables consécutives")
+                log(logger, logging.WARNING, "source interrompue", source=source.id, last_page=connector.last_page_info)
+                break
             continue
+        consecutive_empty = 0
         batch.listings.append(raw)
         if ref.lastmod:
             batch.lastmods[ref.source_ref] = ref.lastmod

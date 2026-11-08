@@ -13,6 +13,7 @@ Le choix des références à récupérer (nouvelles, modifiées, anciennes) et l
 
 from __future__ import annotations
 
+import re
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
@@ -22,6 +23,13 @@ from ..config import SourceConfig
 from ..geo import GeoIndex, department_from_postal_code
 from ..http import PlaywrightRenderer, PoliteClient
 from ..models import ListingRef, RawListing
+
+
+def page_signature(html: str) -> str:
+    """Résumé court d'une page (taille, titre, JSON-LD) pour comprendre un échec d'analyse."""
+    m = re.search(r"<title[^>]*>(.*?)</title>", html, re.S | re.I)
+    title = re.sub(r"\s+", " ", m.group(1)).strip()[:80] if m else "sans titre"
+    return f"{len(html)} o, titre « {title} », JSON-LD×{html.count('application/ld+json')}"
 
 
 @dataclass
@@ -44,6 +52,8 @@ class BaseConnector(ABC):
         self.source = source
         self.ctx = ctx
         self.options = source.options
+        #: Signature de la dernière page téléchargée (diagnostic des échecs d'analyse)
+        self.last_page_info: str = ""
 
     # ---------------------------------------------------------------- API publique
     @abstractmethod
@@ -64,8 +74,11 @@ class BaseConnector(ABC):
         if self.source.render == "playwright":
             if self.ctx.renderer is None:
                 self.ctx.renderer = PlaywrightRenderer(self.ctx.client)
-            return self.ctx.renderer.render(url, self.options.get("wait_selector")).text
-        return self.ctx.client.get(url).text
+            text = self.ctx.renderer.render(url, self.options.get("wait_selector")).text
+        else:
+            text = self.ctx.client.get(url).text
+        self.last_page_info = page_signature(text)
+        return text
 
     def ref_in_scope(self, ref: ListingRef) -> bool | None:
         """Pré-filtrage géographique avant téléchargement. ``None`` = impossible à déterminer."""
