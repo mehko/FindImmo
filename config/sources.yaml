@@ -104,6 +104,29 @@ sources:
       Coordonnées GPS de la page = agence, ignorées. Pour une autre commune : ajouter sa page de
       résultats dans list_pages et son slug dans cities.
 
+  - id: remax
+    name: RE/MAX France (réseau)
+    domain: remax.fr
+    url: https://remax.fr
+    network: RE/MAX
+    cms: Next.js — données complètes dans __NEXT_DATA__ (listingEncoded, base64)
+    method: adapter
+    adapter: remax
+    enabled: true
+    compatibility: compatible
+    rate_limit_seconds: 1.5
+    max_details_per_run: 250
+    refresh_days: 4
+    options:
+      # Index national : seul le sous-sitemap listings_details_fr_* contient les annonces (~3 100) ;
+      # le reste (~8 M d'URL) est constitué de pages de recherche, jamais téléchargées.
+      sitemaps: [https://remax.fr/sitemap.xml]
+      include_sitemaps: 'listings_details_fr'
+    notes: >
+      Département et commune dans l'URL : pré-filtrage géographique sans requête. Beaucoup de mandats du
+      sitemap sont vendus (isSold) : traités comme retirés. GPS repris seulement si l'adresse est exacte.
+      Niveaux DPE/GES 1 à 7 = A à G (déduit d'une fiche affichant « C » pour le niveau 3).
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 
