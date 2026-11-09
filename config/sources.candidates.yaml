@@ -266,15 +266,3 @@ sources:
     sitemaps:
     - https://fr.foncia.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: lesagentsdelimmobilier
-  name: www.lesagentsdelimmobilier.com
-  domain: www.lesagentsdelimmobilier.com
-  url: https://www.lesagentsdelimmobilier.com
-  cms: immo-facile
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.lesagentsdelimmobilier.com/wp-sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'

@@ -220,6 +220,40 @@ sources:
       (méta). DPE et GPS non extraits (classe DPE non exposée en texte ; coordonnées de précision incertaine).
       L'agence vend aussi hors Colombes (95, 78, 75) : filtrage par les départements configurés.
 
+  - id: lesagentsdelimmobilier
+    name: Les Agents de l'Immobilier
+    domain: www.lesagentsdelimmobilier.com
+    url: https://www.lesagentsdelimmobilier.com
+    network: Les Agents de l'Immobilier
+    cms: WordPress + Elementor + thème Houzez (immo-facile) — pas de données structurées sur les annonces
+    method: html
+    enabled: true
+    compatibility: compatible
+    rate_limit_seconds: 1.5
+    max_details_per_run: 120
+    refresh_days: 4
+    options:
+      # Sous-sitemap WordPress du type « property » (annonces en cours ; les biens vendus sont dans « vendus »).
+      sitemaps: [https://www.lesagentsdelimmobilier.com/wp-sitemap-posts-property-1.xml]
+      url_pattern: '/annonces/(?P<ref>[^/]+)/?$'
+      fields:
+        title: { selector: "meta[property='og:title']", attr: content }
+        price: ".detail-wrap li:has(> strong:-soup-contains-own('Prix')) > span"
+        surface: ".detail-wrap li:has(> strong:-soup-contains-own('Superficie')) > span"
+        rooms: ".detail-wrap li:has(> strong:-soup-contains-own('Nb pièces')) > span"
+        bedrooms: ".detail-wrap li:has(> strong:-soup-contains-own('Chambre')) > span"
+        property_type: ".detail-wrap li:has(> strong:-soup-contains-own('Type de bien')) > span"
+        postal_code: ".detail-wrap li:has(> strong:-soup-contains-own('Code postal')) > span"
+        city: { selector: ".detail-wrap li:has(> strong:-soup-contains-own('Ville')) > span", regex: '\d{5} (.+)$' }
+        # Classe de l'annonce : property_status-acheter | property_status-louer
+        transaction: { selector: "[class*='property_status-']", attr: class, regex: 'property_status-([a-z]+)' }
+        description: { selector: "meta[property='og:description']", attr: content }
+        image: { selector: "meta[property='og:image']", attr: content }
+    notes: >
+      URL sans commune : la localisation (CP, ville) n'est connue qu'après lecture de la page, donc pas de
+      pré-filtrage géographique ; ~330 annonces, couvertes en quelques collectes. DPE lu dans le texte
+      de la description (« DPE : E ») quand il est présent. Réseau présent surtout autour de Paris et d'Orléans.
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 
