@@ -101,20 +101,30 @@ def _value(q: Any) -> Any:
 
 
 def find_offer(objects: Iterable[dict[str, Any]]) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any] | None]:
-    """Retourne (listing, offer, item) en suivant les imbrications usuelles."""
+    """Retourne (listing, offer, item) en suivant les imbrications usuelles.
+
+    Les références de graphe JSON-LD (``{"@id": "..."}``) sont résolues vers l'objet correspondant."""
     objects = list(objects)
+    index = {o["@id"]: o for o in objects if isinstance(o.get("@id"), str)}
+
+    def deref(value: Any) -> Any:
+        value = _first(value)
+        if isinstance(value, dict) and set(value) == {"@id"}:
+            return index.get(value["@id"], value)
+        return value
+
     for obj in objects:
         types = _types(obj)
         if "realestatelisting" in types:
-            offer = _first(obj.get("mainEntity") or obj.get("offers") or obj.get("about"))
+            offer = deref(obj.get("mainEntity") or obj.get("offers") or obj.get("about"))
             if isinstance(offer, dict):
-                item = _first(offer.get("itemOffered")) if "itemOffered" in offer else offer
+                item = deref(offer.get("itemOffered")) if "itemOffered" in offer else offer
                 return obj, offer, item if isinstance(item, dict) else None
             return obj, None, None
     for obj in objects:
         types = _types(obj)
-        if "offer" in types and isinstance(obj.get("itemOffered"), dict):
-            return None, obj, obj["itemOffered"]
+        if "offer" in types and isinstance(deref(obj.get("itemOffered")), dict):
+            return None, obj, deref(obj["itemOffered"])
         if types & {"product", "house", "apartment", "singlefamilyresidence", "residence"} and obj.get("offers"):
             offer = _first(obj["offers"])
             return None, offer if isinstance(offer, dict) else None, obj
@@ -220,6 +230,13 @@ class JsonLdConnector(SitemapConnector):
         if raw.transaction is None and (tmap := self.options.get("transaction_from_url")):
             for needle, value in tmap.items():
                 if needle in ref.url:
+                    raw.transaction = value
+                    break
+        # … ou du titre (ex. « Appartement F2 à vendre »), quand l'URL ne la contient pas.
+        if raw.transaction is None and (tmap := self.options.get("transaction_from_title")) and raw.title:
+            title = raw.title.lower()
+            for needle, value in tmap.items():
+                if needle.lower() in title:
                     raw.transaction = value
                     break
         return raw

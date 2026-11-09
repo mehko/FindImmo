@@ -60,6 +60,26 @@ sources:
       Données structurées dans le dataLayer ; DPE uniquement sous forme d'image (non extrait).
       Pré-filtrage par slug de commune dans l'URL.
 
+  - id: century21-beaurepaire-colombes
+    name: Century 21 Beaurepaire (Colombes)
+    domain: www.century21-beaurepaire-colombes.com
+    url: https://www.century21-beaurepaire-colombes.com
+    network: Century 21
+    method: sitemap_jsonld
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://www.century21-beaurepaire-colombes.com/sitemap.xml]
+      url_pattern: 'century21-beaurepaire-colombes\.com/trouver_logement/detail/(?P<ref>\d+)/?$'
+      transaction_from_title: { "à vendre": sale, "à louer": rent }
+    notes: >
+      Site propre à l'agence de Colombes (~36 annonces) : JSON-LD Offer + bien (prix, surface, pièces,
+      code postal). Pas de transaction dans l'URL : déduite du JSON-LD/titre.
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 

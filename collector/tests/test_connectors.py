@@ -72,6 +72,25 @@ def test_jsonld_graph_and_rent_offer():
     assert raw.surface == 45 and "surface" in raw.parsed_fields  # lu dans le nom
 
 
+def test_jsonld_graph_with_id_references_and_transaction_from_title(geo, departments):
+    """Graphe où l'offre pointe le bien par ``@id`` (structure observée chez Century 21)."""
+    html = (
+        '<html><head><script type="application/ld+json">{"@context":"https://schema.org","@graph":['
+        '{"@type":"WebPage","@id":"https://x/d/1/#webpage","mainEntity":{"@id":"https://x/d/1/#offer"}},'
+        '{"@type":"Offer","@id":"https://x/d/1/#offer","price":245000,"itemOffered":{"@id":"https://x/d/1/#property"}},'
+        '{"@type":"Apartment","@id":"https://x/d/1/#property","name":"Appartement F2 à vendre - 2 pièces - 47.63 m2 - COLOMBES",'
+        '"numberOfRooms":2,"floorSize":{"@type":"QuantitativeValue","value":48},'
+        '"address":{"@type":"PostalAddress","addressLocality":"COLOMBES","postalCode":"92700"}}'
+        "]}</script></head><body></body></html>"
+    )
+    src = make_source(options={"transaction_from_title": {"à vendre": "sale", "à louer": "rent"}})
+    conn = JsonLdConnector(src, make_ctx(FakeSite().client(), geo, departments))
+    raw = conn.parse_detail(html, ListingRef(source_id="test", source_ref="1", url="https://x/d/1/"))
+    assert raw is not None
+    assert (raw.price, raw.surface, raw.rooms, raw.postal_code, raw.city) == (245000, 48, 2, "92700", "COLOMBES")
+    assert raw.property_type == "apartment" and raw.transaction == "sale"
+
+
 def test_jsonld_fallback_fields_when_no_structured_data(geo, departments):
     html = ('<html><head><meta property="og:title" content="Parking à vendre 12 m² - Toulon (83) - 29 000€">'
             '</head><body><div data-latitude="43.12" data-longitude="5.95"></div></body></html>')

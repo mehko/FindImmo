@@ -1,4 +1,3 @@
-# Sources découvertes, en attente de validation. NE PAS activer sans vérification manuelle.
 sources:
 - id: asm-immobilier
   name: www.asm-immobilier.fr
@@ -260,18 +259,6 @@ sources:
     sitemaps:
     - https://colombes.arthurimmo.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: century21-beaurepaire-colombes
-  name: www.century21-beaurepaire-colombes.com
-  domain: www.century21-beaurepaire-colombes.com
-  url: https://www.century21-beaurepaire-colombes.com
-  cms: null
-  method: sitemap_jsonld
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.century21-beaurepaire-colombes.com/sitemap.xml
-  notes: évalué le 2026-11-09T10:32:08Z
 - id: eraimmobilier
   name: www.eraimmobilier.com
   domain: www.eraimmobilier.com
@@ -332,13 +319,15 @@ sources:
   domain: www.human-immobilier.fr
   url: https://www.human-immobilier.fr
   cms: null
-  method: sitemap_jsonld
+  method: html
   enabled: false
-  compatibility: pending_validation
+  compatibility: incompatible
   options:
     sitemaps:
     - https://www.human-immobilier.fr/magellan.xml
-  notes: évalué le 2026-11-09T10:32:48Z
+  notes: 'Évalué le 2026-11-09 : sitemap sans URL d''annonce (agences/territoires),
+    JSON-LD = RealEstateAgent seulement. Annonces uniquement via pages de recherche
+    (/achat-immobilier-<ville>?...) : adaptateur HTML dédié nécessaire. Sitemap national.'
 - id: lesagentsdelimmobilier
   name: www.lesagentsdelimmobilier.com
   domain: www.lesagentsdelimmobilier.com
@@ -358,8 +347,11 @@ sources:
   cms: null
   method: sitemap_jsonld
   enabled: false
-  compatibility: pending_validation
+  compatibility: partial
   options:
     sitemaps:
     - https://remax.fr/sitemap.xml
-  notes: évalué le 2026-11-09T10:33:28Z
+  notes: 'Évalué le 2026-11-09 : JSON-LD Offer présent (prix, surface, chambres) mais
+    sans adresse ; département et commune dans l''URL (…---92-colombes/…). Sitemap
+    national de ~8 millions d''URL (~5 min à télécharger) : trop lourd pour une collecte
+    récurrente en l''état. Environ 8 600 mandats du 92 dans le sitemap.'
