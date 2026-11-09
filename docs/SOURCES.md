@@ -62,7 +62,7 @@ sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`
 | Catégorie | Agences | Suite |
 |---|---|---|
 | **Active** (`sitemap_jsonld`) | Century 21 Beaurepaire (`century21-beaurepaire-colombes`) | validée le 2026-11-09 : 36 annonces, 8/8 extraites (JSON-LD en graphe `@id`, transaction lue dans le titre) |
-| JSON-LD partiel, trop lourd | Re/Max (`remax`) | JSON-LD sans adresse (commune/département dans l'URL, ~8 600 mandats du 92) mais sitemap national de ~8 M d'URL : non activée |
+| **Active** (adaptateur `remax`) | Re/Max (`remax`) | validée le 2026-11-09 : le sitemap n'a que ~3 100 annonces utiles (le reste = pages de recherche, jamais téléchargées) ; département/commune dans l'URL → pré-filtrage sans requête ; détail via `__NEXT_DATA__` ; mandats vendus (très nombreux) retirés ; ~220 annonces dans les départements configurés |
 | **Active** (adaptateur `human`) | HUMAN Immobilier (`human-immobilier`) | validée le 2026-11-09 : sitemap sans annonces → découverte par les pages de résultats de la commune ; détail via JSON-LD `RealEstateListing` ; annonces « Vendu » retirées ; 35 annonces à Colombes, vente uniquement |
 | HTML sans JSON-LD, moteur connu (adaptateur partagé possible) | Apimo : Arthurimmo, Impact Immo, NCI+, Futur Transactions · Hektor : Act'immo, Coeuret · Netty : Immodurand · Immo-facile : Les Agents de l'Immobilier | un adaptateur par moteur |
 | HTML sans JSON-LD, moteur inconnu ou peu d'annonces dans le sitemap | ASM, Agence Centrale, Cabinet Vincent, GIC, Gridimmo, HF Conseil, I3G, Imax, Intérieur et Jardin, Louzi, MonEden, Montquartier, KLH Conseil, Your New Home, Massiet, ERA, Foncia | sélecteurs à définir au cas par cas |

@@ -326,18 +326,3 @@ sources:
     sitemaps:
     - https://www.lesagentsdelimmobilier.com/wp-sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: remax
-  name: remax.fr
-  domain: remax.fr
-  url: https://remax.fr
-  cms: null
-  method: sitemap_jsonld
-  enabled: false
-  compatibility: partial
-  options:
-    sitemaps:
-    - https://remax.fr/sitemap.xml
-  notes: 'Évalué le 2026-11-09 : JSON-LD Offer présent (prix, surface, chambres) mais
-    sans adresse ; département et commune dans l''URL (…---92-colombes/…). Sitemap
-    national de ~8 millions d''URL (~5 min à télécharger) : trop lourd pour une collecte
-    récurrente en l''état. Environ 8 600 mandats du 92 dans le sitemap.'

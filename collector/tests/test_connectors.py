@@ -215,3 +215,57 @@ def test_human_adapter_detail_and_sold(geo, departments):
     assert raw.latitude is None  # coordonnées de la page = agence, non reprises
     with pytest.raises(ListingRemoved):
         conn.parse_detail(fixture("human_detail_sold.html"), ref)
+
+
+def _remax_connector(geo, departments, site=None, **options):
+    src = make_source(id="remax", method="adapter", adapter="remax", domain="remax.example",
+                      url="https://remax.example", options=options)
+    return build_connector(src, make_ctx((site or FakeSite()).client(), geo, departments))
+
+
+def test_remax_adapter_discovery_targets_listing_sitemap_and_prefilters(geo, departments):
+    index = ('<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+             "<sitemap><loc>https://remax.example/sitemap/listings_details_fr_1.xml.gz</loc></sitemap>"
+             "<sitemap><loc>https://remax.example/sitemap/listings_search_buy_fr_01.xml.gz</loc></sitemap></sitemapindex>")
+    details = ('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+               "<url><loc>https://remax.example/fr/900000001-11</loc></url>"  # forme courte : ignorée
+               "<url><loc>https://remax.example/fr/mandats/vente-appartement-ch2-hauts-de-seine---92-ville-test/900000001-11</loc></url>"
+               "<url><loc>https://remax.example/fr/mandats/location-maison-ch3-haute-savoie---74-arthaz-pont-notre-dame/900000002-22</loc></url>"
+               "</urlset>")
+    site = FakeSite({
+        "https://remax.example/sitemap.xml": index,
+        "https://remax.example/sitemap/listings_details_fr_1.xml.gz": details,
+        # le sitemap de recherche ne doit jamais être téléchargé : absent de FakeSite → 404 si demandé
+    })
+    conn = _remax_connector(geo, departments, site, sitemaps=["https://remax.example/sitemap.xml"])
+    refs = list(conn.discover())
+    assert [r.source_ref for r in refs] == ["900000001-11", "900000002-22"]
+    assert [r.department_hint for r in refs] == ["92", "74"]
+    assert conn.ref_in_scope(refs[0]) is True and conn.ref_in_scope(refs[1]) is False
+    assert not any("search" in u for u in site.hits)
+
+
+def test_remax_adapter_detail_sold_and_rent(geo, departments):
+    conn = _remax_connector(geo, departments)
+    sale_url = "https://remax.example/fr/mandats/vente-appartement-ch2-hauts-de-seine---92-ville-test/900000001-11"
+    ref = ListingRef(source_id="remax", source_ref="900000001-11", url=sale_url)
+    raw = conn.parse_detail(fixture("remax_detail.html"), ref)
+    assert raw is not None
+    assert raw.transaction == "sale" and raw.property_type == "apartment"
+    assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (310000, 58.5, 3, 2)
+    assert (raw.postal_code, raw.city, raw.dpe, raw.ges) == ("92000", "Ville-Test", "D", None)  # niveau 14 = non renseigné
+    assert raw.features == {"parking": True, "elevator": True}
+    assert raw.description == "Bel appartement lumineux. Proche transports."
+    assert raw.title == "Appartement à vendre - Ville-Test, Hauts-de-Seine - 92"
+    assert raw.image == "https://i.maxwork.fr/ds-l/listings/90000/1/photo.jpg" and raw.published_at == "2026-10-01"
+    assert raw.agency == "RE/MAX AGENCE FICTIVE"
+    assert raw.latitude is None  # adresse non exacte : coordonnées approximatives ignorées
+
+    with pytest.raises(ListingRemoved):
+        conn.parse_detail(fixture("remax_detail_sold.html"), ref)
+
+    rent_url = "https://remax.example/fr/mandats/location-appartement-ch1-hauts-de-seine---92-ville-test/900000001-12"
+    rent = conn.parse_detail(fixture("remax_detail_rent.html"), ListingRef(source_id="remax", source_ref="900000001-12", url=rent_url))
+    assert rent.transaction == "rent" and rent.price == 995
+    assert (rent.latitude, rent.longitude) == (48.9, 2.25)  # adresse exacte : coordonnées reprises
+    assert conn.parse_detail("<html></html>", ref) is None  # page sans __NEXT_DATA__

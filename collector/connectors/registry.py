@@ -5,6 +5,7 @@ from __future__ import annotations
 from ..config import SourceConfig
 from .adapters.human import HumanConnector
 from .adapters.laforet import LaforetConnector
+from .adapters.remax import RemaxConnector
 from .base import BaseConnector, ConnectorContext
 from .feed import FeedConnector
 from .html import HtmlConnector
@@ -19,6 +20,7 @@ METHODS: dict[str, type[BaseConnector]] = {
 ADAPTERS: dict[str, type[BaseConnector]] = {
     "human": HumanConnector,
     "laforet": LaforetConnector,
+    "remax": RemaxConnector,
 }
 
 
