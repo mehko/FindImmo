@@ -144,11 +144,10 @@ def raw_from_jsonld(objects: list[dict[str, Any]], source_id: str, source_ref: s
     business = str(offer.get("businessFunction") or "").lower()
     transaction = "rent" if ("lease" in business or "rent" in business) else ("sale" if "sell" in business else None)
 
-    ptype = None
-    for t in _types(item):
-        if t in PROPERTY_TYPES:
-            ptype = PROPERTY_TYPES[t]
-            break
+    # Plusieurs types peuvent coexister (ex. ["Apartment", "Accommodation"]) : on retient le plus
+    # précis, indépendamment de l'ordre (``_types`` renvoie un ensemble).
+    candidates = {PROPERTY_TYPES[t] for t in _types(item) if t in PROPERTY_TYPES}
+    ptype = next(iter(sorted(candidates - {"other"})), "other" if candidates else None)
 
     name = clean_text(item.get("name") or listing.get("name") or offer.get("name"))
     description = clean_text(item.get("description") or listing.get("description") or offer.get("description"))

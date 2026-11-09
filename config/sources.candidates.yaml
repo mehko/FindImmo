@@ -314,20 +314,6 @@ sources:
     sitemaps:
     - https://futurtransactions-colombes.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: human-immobilier
-  name: www.human-immobilier.fr
-  domain: www.human-immobilier.fr
-  url: https://www.human-immobilier.fr
-  cms: null
-  method: html
-  enabled: false
-  compatibility: incompatible
-  options:
-    sitemaps:
-    - https://www.human-immobilier.fr/magellan.xml
-  notes: 'Évalué le 2026-11-09 : sitemap sans URL d''annonce (agences/territoires),
-    JSON-LD = RealEstateAgent seulement. Annonces uniquement via pages de recherche
-    (/achat-immobilier-<ville>?...) : adaptateur HTML dédié nécessaire. Sitemap national.'
 - id: lesagentsdelimmobilier
   name: www.lesagentsdelimmobilier.com
   domain: www.lesagentsdelimmobilier.com
