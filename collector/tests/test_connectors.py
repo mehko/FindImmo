@@ -309,3 +309,19 @@ def test_html_connector_og_title_configuration_of_arthurimmo(geo, departments):
     # La découverte retient une URL d'annonce et pré-filtre par code postal.
     m = re.search(cfg.options["url_pattern"], url)
     assert m and m["postal_code"] == "92000" and m["ref"] == "1"
+
+
+def test_html_connector_houzez_configuration_of_lesagentsdelimmobilier(geo, departments):
+    """Configuration réelle de `lesagentsdelimmobilier` (thème Houzez) sur une page fictive de même structure."""
+    from collector.config import load_sources
+
+    cfg = next(s for s in load_sources() if s.id == "lesagentsdelimmobilier")
+    conn = HtmlConnector(cfg, make_ctx(FakeSite().client(), geo, departments))
+    url = "https://agence.example/annonces/appartement-3-pieces-ville-test/"
+    raw = conn.parse_detail(fixture("html_houzez_detail.html"), ListingRef(source_id=cfg.id, source_ref="x", url=url))
+    assert raw is not None
+    assert (raw.transaction, raw.property_type) == ("acheter", "APPARTEMENT")  # normalisés par le pipeline
+    assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (272000, 47, 3, 1)
+    assert (raw.city, raw.postal_code, raw.dpe) == ("VILLE-TEST", "92000", "E")
+    m = re.search(cfg.options["url_pattern"], url)
+    assert m and m["ref"] == "appartement-3-pieces-ville-test"
