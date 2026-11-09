@@ -119,6 +119,8 @@ class HtmlConnector(SitemapConnector):
                 values["land_surface"], parsed = land, [*parsed, "land_surface"]
         if values.get("dpe") is None and (dpe := parse_energy_class(soup.get_text(" "), "dpe")):
             values["dpe"], parsed = dpe, [*parsed, "dpe"]
+        if isinstance(values.get("image"), str) and values["image"].startswith("//"):
+            values["image"] = "https:" + values["image"]  # URL sans schéma (ex. og:image Hektor)
         if not values.get("price") and not title:
             return None
         if values.get("transaction") is None and (tmap := self.options.get("transaction_from_url")):

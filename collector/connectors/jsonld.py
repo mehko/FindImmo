@@ -134,8 +134,13 @@ def find_offer(objects: Iterable[dict[str, Any]]) -> tuple[dict[str, Any] | None
         if "offer" in types and isinstance(deref(obj.get("itemOffered")), dict):
             return None, obj, deref(obj["itemOffered"])
         if types & {"product", "house", "apartment", "singlefamilyresidence", "residence"} and obj.get("offers"):
-            offer = _first(obj["offers"])
-            return None, offer if isinstance(offer, dict) else None, obj
+            offer = deref(obj["offers"])
+            offer = offer if isinstance(offer, dict) else None
+            # Variante (Netty) : le bien détaillé est dans offers.itemOffered, le Product n'est qu'une enveloppe.
+            offered = deref(offer.get("itemOffered")) if offer else None
+            if isinstance(offered, dict):
+                return obj, offer, offered  # l'enveloppe fournit nom, description et image de repli
+            return None, offer, obj
     return None, None, None
 
 
@@ -198,7 +203,7 @@ def raw_from_jsonld(objects: list[dict[str, Any]], source_id: str, source_ref: s
     return RawListing(
         source_id=source_id,
         source_ref=source_ref,
-        url=str(listing.get("url") or offer.get("url") or url),
+        url=next((str(u) for u in (listing.get("url"), offer.get("url")) if str(u or "").startswith(("http://", "https://"))), url),
         title=name,
         description=description,
         transaction=transaction,
@@ -238,6 +243,9 @@ class JsonLdConnector(SitemapConnector):
         texts = (raw.title or "", raw.description or "")
         if any(re.search(rx, text, re.I) for rx in markers for text in texts):
             raise ListingRemoved(ref.url, "annonce marquée vendue")
+        if self.options.get("removed_if_no_price") and not raw.price:
+            # Netty : un bien vendu reste dans le sitemap avec « price: 0 » et un bandeau « Vendu ».
+            raise ListingRemoved(ref.url, "annonce sans prix (bien vendu)")
         # Transaction déduite de l'URL quand le JSON-LD ne la précise pas.
         if raw.transaction is None and (tmap := self.options.get("transaction_from_url")):
             for needle, value in tmap.items():

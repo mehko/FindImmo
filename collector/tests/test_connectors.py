@@ -4,6 +4,7 @@ import re
 import pytest
 
 from collector.connectors.adapters.era import EraConnector
+from collector.connectors.adapters.hektor import HektorConnector
 from collector.connectors.adapters.human import HumanConnector
 from collector.connectors.adapters.laforet import LaforetConnector
 from collector.connectors.feed import FeedConnector
@@ -367,3 +368,68 @@ def test_era_adapter_item_mapping_and_failure_on_unexpected_page(geo, department
     _, conn2 = _era_connector(geo, departments, broken)
     with pytest.raises(ValueError):
         list(conn2.discover())  # structure inattendue : la découverte ne doit pas passer pour exhaustive
+
+
+def test_jsonld_netty_product_with_item_offered_and_schemeless_offer_url(geo, departments):
+    """Netty : Product enveloppant offers.itemOffered ; l'URL de l'offre n'a pas de schéma."""
+    page_url = "https://www.agence.example/vente/appartement-t3-3-pieces-ville-test-92000,VA1994"
+    raw = raw_from_jsonld(extract_jsonld(fixture("jsonld_netty.html")), "test", "VA1994", page_url)
+    assert raw is not None
+    assert (raw.property_type, raw.price, raw.surface, raw.rooms) == ("apartment", 275000, 60, 3)
+    assert (raw.city, raw.postal_code) == ("VILLE-TEST", "92000")
+    assert raw.url == page_url  # « www.agence.example/… » (sans schéma) n'est pas repris
+    assert raw.image == "https://img.example/product/VA1994/photo1.jpg"  # image de l'enveloppe Product
+
+
+def test_jsonld_netty_sold_listing_has_zero_price_and_is_removed(geo, departments):
+    src = make_source(options={"removed_if_no_price": True})
+    conn = JsonLdConnector(src, make_ctx(FakeSite().client(), geo, departments))
+    url = "https://www.agence.example/vente/appartement-t3-3-pieces-ville-test-92000,VA1994"
+    ref = ListingRef(source_id="test", source_ref="VA1994", url=url)
+    assert conn.parse_detail(fixture("jsonld_netty.html"), ref).price == 275000
+    with pytest.raises(ListingRemoved):
+        conn.parse_detail(fixture("jsonld_netty.html").replace('"price":275000', '"price":0'), ref)
+    # Sans l'option, un prix absent n'est pas une raison de retirer l'annonce.
+    plain = JsonLdConnector(make_source(), make_ctx(FakeSite().client(), geo, departments))
+    assert plain.parse_detail(fixture("jsonld_netty.html").replace('"price":275000', '"price":0'), ref).price is None
+
+
+def _hektor(geo, departments, source_id):
+    from collector.config import load_sources
+
+    cfg = next(s for s in load_sources() if s.id == source_id)
+    assert cfg.adapter == "hektor"
+    return cfg, build_connector(cfg, make_ctx(FakeSite().client(), geo, departments))
+
+
+def test_hektor_act_immo_theme_and_derived_buyer_price(geo, departments):
+    cfg, conn = _hektor(geo, departments, "act-immo")
+    assert isinstance(conn, HektorConnector)
+    url = "https://www.act-immo.net/vente/1-ville-test/maison/945-ville-test-maison-6-pieces"
+    ref = ListingRef(source_id=cfg.id, source_ref="945", url=url)
+    m = re.search(cfg.options["url_pattern"], url)
+    assert m and (m["transaction"], m["city"], m["type"], m["ref"]) == ("vente", "ville-test", "maison", "945")
+
+    # Prix du bandeau vide : prix net vendeur 680 000 € × (1 + 2,65 %) = 698 020 € → arrondi à 100 €.
+    raw = conn.parse_detail(fixture("hektor_act_house.html"), ref)
+    assert raw is not None
+    assert (raw.property_type, raw.surface, raw.rooms, raw.bedrooms) == ("Maison", 92, 6, 3)
+    assert (raw.city, raw.postal_code, raw.transaction) == ("Ville-Test", "92000", "sale")
+    assert raw.price == 698000 and "price" in raw.parsed_fields
+    assert raw.image == "https://agence.staticlbi.com/photo.jpg"  # URL sans schéma complétée
+
+    # Prix du bandeau renseigné : jamais écrasé, non marqué « parsed ».
+    priced = conn.parse_detail(fixture("hektor_act_priced.html"), ref)
+    assert priced.price == 295000 and "price" not in priced.parsed_fields
+
+    # Sans taux d'honoraires lisible : on ne publie pas le prix net vendeur comme prix d'achat.
+    assert conn.parse_detail(fixture("hektor_act_norate.html"), ref).price is None
+
+
+def test_hektor_coeuret_theme(geo, departments):
+    cfg, conn = _hektor(geo, departments, "coeuretimmobilier")
+    url = "https://www.coeuretimmobilier.com/vente/1-ville-test/maison/348-maison-familiale"
+    raw = conn.parse_detail(fixture("hektor_coeuret.html"), ListingRef(source_id=cfg.id, source_ref="348", url=url))
+    assert raw is not None
+    assert (raw.property_type, raw.price, raw.surface, raw.rooms, raw.bedrooms) == ("Maison", 440000, 81.13, 5, 3)
+    assert (raw.city, raw.postal_code, raw.transaction) == ("Ville-Test", "92000", "sale")
