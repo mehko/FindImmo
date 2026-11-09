@@ -75,5 +75,6 @@ sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`
 | Bloquées (403) | Capifrance, Efficity, Keymex, Stéphane Plaza | exclues (non contournées) |
 | Inutilisables | AGS Immobilier (domaine abandonné), Orpi Action Immobilier (404) | à revérifier |
 
-Les sitemaps de Foncia, ERA et Human sont nationaux : le pré-filtrage par commune/code postal est
-indispensable avant toute activation.
+Le sitemap de Foncia est national : un pré-filtrage par commune/code postal est indispensable avant toute
+activation. Pour ERA et HUMAN, dont les sitemaps étaient inexploitables, la découverte passe par les pages de
+résultats (voir les adaptateurs `era` et `human`).
