@@ -61,7 +61,9 @@ sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`
 
 | Catégorie | Agences | Suite |
 |---|---|---|
-| JSON-LD détecté (méthode `sitemap_jsonld` probable) | Century 21 Beaurepaire, Human Immobilier, Re/Max | candidats prioritaires : renseigner `url_pattern` |
+| **Active** (`sitemap_jsonld`) | Century 21 Beaurepaire (`century21-beaurepaire-colombes`) | validée le 2026-11-09 : 36 annonces, 8/8 extraites (JSON-LD en graphe `@id`, transaction lue dans le titre) |
+| JSON-LD partiel, trop lourd | Re/Max (`remax`) | JSON-LD sans adresse (commune/département dans l'URL, ~8 600 mandats du 92) mais sitemap national de ~8 M d'URL : non activée |
+| Pas de sitemap d'annonces | Human Immobilier (`human-immobilier`) | le JSON-LD détecté est un `RealEstateAgent` ; annonces via pages de recherche : adaptateur HTML nécessaire (incompatible en l'état) |
 | HTML sans JSON-LD, moteur connu (adaptateur partagé possible) | Apimo : Arthurimmo, Impact Immo, NCI+, Futur Transactions · Hektor : Act'immo, Coeuret · Netty : Immodurand · Immo-facile : Les Agents de l'Immobilier | un adaptateur par moteur |
 | HTML sans JSON-LD, moteur inconnu ou peu d'annonces dans le sitemap | ASM, Agence Centrale, Cabinet Vincent, GIC, Gridimmo, HF Conseil, I3G, Imax, Intérieur et Jardin, Louzi, MonEden, Montquartier, KLH Conseil, Your New Home, Massiet, ERA, Foncia | sélecteurs à définir au cas par cas |
 | Déjà enregistrées | Laforêt (active), iad (en attente) | — |
