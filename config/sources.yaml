@@ -254,6 +254,34 @@ sources:
       pré-filtrage géographique ; ~330 annonces, couvertes en quelques collectes. DPE lu dans le texte
       de la description (« DPE : E ») quand il est présent. Réseau présent surtout autour de Paris et d'Orléans.
 
+  - id: eraimmobilier
+    name: ERA Immobilier (réseau, Hauts-de-Seine)
+    domain: www.eraimmobilier.com
+    url: https://www.eraimmobilier.com
+    network: ERA Immobilier
+    cms: Angular (SSR) — résultats de recherche complets dans le bloc ng-state
+    method: adapter
+    adapter: era
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 250
+    max_run_seconds: 900
+    refresh_days: 3
+    options:
+      # Pages de résultats du département 92 (10 annonces par page, annonces complètes incluses).
+      # Pour un autre département : ajouter ses pages /achat/<région>/<département> et /location/…
+      list_pages:
+        - https://www.eraimmobilier.com/achat/ile-de-france-1/hauts-de-seine-97
+        - https://www.eraimmobilier.com/location/ile-de-france-1/hauts-de-seine-97
+      max_pages: 60
+    notes: >
+      Le sitemap (~13 000 URL /annonces/<id> sans localisation) n'est pas utilisé. Chaque page de résultats
+      embarque la réponse de recherche du site avec les annonces complètes : ~45 requêtes pour tout le 92,
+      sans télécharger les fiches. Mandats vendus déjà exclus par le site (statut 0,1,11). GES et GPS
+      absents/ignorés (le GPS est celui du centre de la commune).
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 

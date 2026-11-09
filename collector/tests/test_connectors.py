@@ -3,6 +3,7 @@ import re
 
 import pytest
 
+from collector.connectors.adapters.era import EraConnector
 from collector.connectors.adapters.human import HumanConnector
 from collector.connectors.adapters.laforet import LaforetConnector
 from collector.connectors.feed import FeedConnector
@@ -325,3 +326,44 @@ def test_html_connector_houzez_configuration_of_lesagentsdelimmobilier(geo, depa
     assert (raw.city, raw.postal_code, raw.dpe) == ("VILLE-TEST", "92000", "E")
     m = re.search(cfg.options["url_pattern"], url)
     assert m and m["ref"] == "appartement-3-pieces-ville-test"
+
+
+def _era_connector(geo, departments, site=None, **options):
+    base = "https://www.era.example/achat/idf-1/hauts-de-seine-97"
+    src = make_source(id="era", method="adapter", adapter="era", domain="www.era.example", url="https://www.era.example",
+                      options={"list_pages": [base], **options})
+    return base, build_connector(src, make_ctx((site or FakeSite()).client(), geo, departments))
+
+
+def test_era_adapter_discovery_reads_embedded_search_and_stops_at_total(geo, departments):
+    base = "https://www.era.example/achat/idf-1/hauts-de-seine-97"
+    site = FakeSite({base: fixture("era_list_page1.html"), base + "?page=2": fixture("era_list_page2.html")})
+    _, conn = _era_connector(geo, departments, site)
+    assert isinstance(conn, EraConnector)
+    refs = list(conn.discover())
+    # 3 annonces au total, 2 par page : la page 3 n'est jamais demandée ; l'annonce 1002 (en double) est dédupliquée.
+    assert [r.source_ref for r in refs] == ["1001", "1002", "1003"]
+    assert not any(u.endswith("page=3") for u in site.hits)
+    assert all(r.raw is not None and r.postal_code_hint == "92000" for r in refs)
+    assert conn.fetch_detail(refs[0]) is refs[0].raw  # aucune page détail à télécharger
+
+
+def test_era_adapter_item_mapping_and_failure_on_unexpected_page(geo, departments):
+    base = "https://www.era.example/achat/idf-1/hauts-de-seine-97"
+    site = FakeSite({base: fixture("era_list_page1.html"), base + "?page=2": fixture("era_list_page2.html")})
+    _, conn = _era_connector(geo, departments, site)
+    sale, rent, house = (r.raw for r in conn.discover())
+    assert (sale.transaction, sale.property_type, sale.price, sale.surface) == ("Vente", "Appartement", 310000, 58)
+    assert (sale.rooms, sale.bedrooms, sale.city, sale.postal_code) == (3, 2, "ville-test", "92000")
+    assert (sale.dpe, sale.ges, sale.agency) == ("D", None, "ERA AGENCE FICTIVE")
+    assert sale.features == {"elevator": True, "cellar": True, "parking": True}  # les critères à 0 sont ignorés
+    assert sale.description == "Bel appartement lumineux. Proche transports."  # HTML retiré, ponctuation recollée
+    assert sale.image == "https://img.example/a.jpg" and sale.published_at == "2026-10-01"
+    assert sale.url == "https://www.eraimmobilier.com/annonces/1001" and sale.latitude is None  # GPS = centre de commune
+    assert (rent.transaction, rent.price, rent.surface, rent.dpe) == ("Location", 995, None, None)  # 0 → inconnu ; « Vierge » ignoré
+    assert (house.land_surface, house.bedrooms) == (250, None)
+
+    broken = FakeSite({base: "<html><body>maintenance</body></html>"})
+    _, conn2 = _era_connector(geo, departments, broken)
+    with pytest.raises(ValueError):
+        list(conn2.discover())  # structure inattendue : la découverte ne doit pas passer pour exhaustive

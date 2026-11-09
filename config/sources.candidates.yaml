@@ -223,37 +223,6 @@ sources:
     sitemaps:
     - https://www.massietimmo.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: eraimmobilier
-  name: www.eraimmobilier.com
-  domain: www.eraimmobilier.com
-  url: https://www.eraimmobilier.com
-  cms: null
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_biens.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_appartement.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_maison.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_terrain.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_programmes-neufs.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_immeuble.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_parking-garage.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_biens.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_appartement.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_maison.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_terrain.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_programmes-neufs.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_immeuble.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_parking-garage.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_agences.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_silo_fiches_agences.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_blog.xml
-    - https://www.eraimmobilier.com/sitemap/sitemap_autres.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: fr-foncia
   name: fr.foncia.com
   domain: fr.foncia.com
