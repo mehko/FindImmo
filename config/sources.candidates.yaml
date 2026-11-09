@@ -1,0 +1,365 @@
+# Sources découvertes, en attente de validation. NE PAS activer sans vérification manuelle.
+sources:
+- id: asm-immobilier
+  name: www.asm-immobilier.fr
+  domain: www.asm-immobilier.fr
+  url: https://www.asm-immobilier.fr
+  cms: wordpress
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.asm-immobilier.fr/sitemap_index.xml
+    - https://www.asm-immobilier.fr/asm.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: act-immo
+  name: www.act-immo.net
+  domain: www.act-immo.net
+  url: https://www.act-immo.net
+  cms: hektor
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.act-immo.net/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: agencecentrale92
+  name: www.agencecentrale92.com
+  domain: www.agencecentrale92.com
+  url: https://www.agencecentrale92.com
+  cms: wordpress
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.agencecentrale92.com/sitemap_index.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: cabinetvincent
+  name: www.cabinetvincent.fr
+  domain: www.cabinetvincent.fr
+  url: https://www.cabinetvincent.fr
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps: []
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: coeuretimmobilier
+  name: www.coeuretimmobilier.com
+  domain: www.coeuretimmobilier.com
+  url: https://www.coeuretimmobilier.com
+  cms: hektor
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.coeuretimmobilier.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: g-i-c
+  name: g-i-c.fr
+  domain: g-i-c.fr
+  url: https://g-i-c.fr
+  cms: wordpress
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://g-i-c.fr/sitemaps.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: gridimmo
+  name: www.gridimmo.fr
+  domain: www.gridimmo.fr
+  url: https://www.gridimmo.fr
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps: []
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: hfconseilimmobilier
+  name: www.hfconseilimmobilier.com
+  domain: www.hfconseilimmobilier.com
+  url: https://www.hfconseilimmobilier.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.hfconseilimmobilier.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: i3g
+  name: www.i3g.com
+  domain: www.i3g.com
+  url: https://www.i3g.com
+  cms: wordpress
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - http://www.i3g.com/sitemap_index.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: imax
+  name: www.imax.fr
+  domain: www.imax.fr
+  url: https://www.imax.fr
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps: []
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: immodurand
+  name: www.immodurand.com
+  domain: www.immodurand.com
+  url: https://www.immodurand.com
+  cms: netty
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.immodurand.com/sitemap.xml
+  notes: 'erreur HTTP (408) : https://www.immodurand.com/vente-immobiliere-la-garenne-colombes,131;
+    pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: impact-immo
+  name: impact-immo.com
+  domain: impact-immo.com
+  url: https://impact-immo.com
+  cms: apimo
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://impact-immo.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: interieuretjardin
+  name: www.interieuretjardin.com
+  domain: www.interieuretjardin.com
+  url: https://www.interieuretjardin.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps: []
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: louzi-immobilier
+  name: www.louzi-immobilier.com
+  domain: www.louzi-immobilier.com
+  url: https://www.louzi-immobilier.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.louzi-immobilier.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: monedenimmobilier
+  name: www.monedenimmobilier.com
+  domain: www.monedenimmobilier.com
+  url: https://www.monedenimmobilier.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps: []
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: montquartier-colombes
+  name: www.montquartier-colombes.com
+  domain: www.montquartier-colombes.com
+  url: https://www.montquartier-colombes.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.montquartier-colombes.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: nciplus
+  name: nciplus.fr
+  domain: nciplus.fr
+  url: https://nciplus.fr
+  cms: apimo
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://nciplus.fr/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: klhconseil
+  name: www.klhconseil.fr
+  domain: www.klhconseil.fr
+  url: https://www.klhconseil.fr
+  cms: wordpress
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.klhconseil.fr/sitemaps.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: your-new-home
+  name: www.your-new-home.fr
+  domain: www.your-new-home.fr
+  url: https://www.your-new-home.fr
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.your-new-home.fr/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: drhouse-immo
+  name: www.drhouse-immo.com
+  domain: www.drhouse-immo.com
+  url: https://www.drhouse-immo.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: incompatible
+  options:
+    sitemaps: []
+  notes: 'interdit par robots.txt : https://www.drhouse-immo.com/'
+- id: massietimmo
+  name: www.massietimmo.com
+  domain: www.massietimmo.com
+  url: https://www.massietimmo.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.massietimmo.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: colombes-arthurimmo
+  name: colombes.arthurimmo.com
+  domain: colombes.arthurimmo.com
+  url: https://colombes.arthurimmo.com
+  cms: apimo
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://colombes.arthurimmo.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: century21-beaurepaire-colombes
+  name: www.century21-beaurepaire-colombes.com
+  domain: www.century21-beaurepaire-colombes.com
+  url: https://www.century21-beaurepaire-colombes.com
+  cms: null
+  method: sitemap_jsonld
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.century21-beaurepaire-colombes.com/sitemap.xml
+  notes: évalué le 2026-11-09T10:32:08Z
+- id: eraimmobilier
+  name: www.eraimmobilier.com
+  domain: www.eraimmobilier.com
+  url: https://www.eraimmobilier.com
+  cms: null
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_biens.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_appartement.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_maison.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_terrain.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_programmes-neufs.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_immeuble.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_achat_parking-garage.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_biens.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_appartement.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_maison.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_terrain.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_programmes-neufs.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_immeuble.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_location_parking-garage.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_agences.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_silo_fiches_agences.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_blog.xml
+    - https://www.eraimmobilier.com/sitemap/sitemap_autres.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: fr-foncia
+  name: fr.foncia.com
+  domain: fr.foncia.com
+  url: https://fr.foncia.com
+  cms: wordpress
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://fr.foncia.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: futurtransactions-colombes
+  name: futurtransactions-colombes.com
+  domain: futurtransactions-colombes.com
+  url: https://futurtransactions-colombes.com
+  cms: apimo
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://futurtransactions-colombes.com/sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: human-immobilier
+  name: www.human-immobilier.fr
+  domain: www.human-immobilier.fr
+  url: https://www.human-immobilier.fr
+  cms: null
+  method: sitemap_jsonld
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.human-immobilier.fr/magellan.xml
+  notes: évalué le 2026-11-09T10:32:48Z
+- id: lesagentsdelimmobilier
+  name: www.lesagentsdelimmobilier.com
+  domain: www.lesagentsdelimmobilier.com
+  url: https://www.lesagentsdelimmobilier.com
+  cms: immo-facile
+  method: html
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://www.lesagentsdelimmobilier.com/wp-sitemap.xml
+  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
+- id: remax
+  name: remax.fr
+  domain: remax.fr
+  url: https://remax.fr
+  cms: null
+  method: sitemap_jsonld
+  enabled: false
+  compatibility: pending_validation
+  options:
+    sitemaps:
+    - https://remax.fr/sitemap.xml
+  notes: évalué le 2026-11-09T10:33:28Z
