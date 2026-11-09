@@ -130,18 +130,6 @@ sources:
     - https://www.immodurand.com/sitemap.xml
   notes: 'erreur HTTP (408) : https://www.immodurand.com/vente-immobiliere-la-garenne-colombes,131;
     pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: impact-immo
-  name: impact-immo.com
-  domain: impact-immo.com
-  url: https://impact-immo.com
-  cms: apimo
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://impact-immo.com/sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: interieuretjardin
   name: www.interieuretjardin.com
   domain: www.interieuretjardin.com
@@ -187,18 +175,6 @@ sources:
   options:
     sitemaps:
     - https://www.montquartier-colombes.com/sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: nciplus
-  name: nciplus.fr
-  domain: nciplus.fr
-  url: https://nciplus.fr
-  cms: apimo
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://nciplus.fr/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: klhconseil
   name: www.klhconseil.fr
@@ -247,18 +223,6 @@ sources:
     sitemaps:
     - https://www.massietimmo.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: colombes-arthurimmo
-  name: colombes.arthurimmo.com
-  domain: colombes.arthurimmo.com
-  url: https://colombes.arthurimmo.com
-  cms: apimo
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://colombes.arthurimmo.com/sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: eraimmobilier
   name: www.eraimmobilier.com
   domain: www.eraimmobilier.com
@@ -301,18 +265,6 @@ sources:
   options:
     sitemaps:
     - https://fr.foncia.com/sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: futurtransactions-colombes
-  name: futurtransactions-colombes.com
-  domain: futurtransactions-colombes.com
-  url: https://futurtransactions-colombes.com
-  cms: apimo
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://futurtransactions-colombes.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: lesagentsdelimmobilier
   name: www.lesagentsdelimmobilier.com
