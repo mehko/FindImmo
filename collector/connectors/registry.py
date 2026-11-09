@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ..config import SourceConfig
 from .adapters.era import EraConnector
+from .adapters.foncia import FonciaConnector
 from .adapters.hektor import HektorConnector
 from .adapters.human import HumanConnector
 from .adapters.laforet import LaforetConnector
@@ -21,6 +22,7 @@ METHODS: dict[str, type[BaseConnector]] = {
 
 ADAPTERS: dict[str, type[BaseConnector]] = {
     "era": EraConnector,
+    "foncia": FonciaConnector,
     "hektor": HektorConnector,
     "human": HumanConnector,
     "laforet": LaforetConnector,

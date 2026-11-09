@@ -367,6 +367,30 @@ sources:
       Vente et location (nombreux parkings/garages à Courbevoie, Asnières, La Garenne). DPE, GPS et
       équipements absents du JSON-LD. URL de l'offre sans schéma : l'URL de la page est utilisée.
 
+  - id: foncia
+    name: Foncia (réseau)
+    domain: fr.foncia.com
+    url: https://fr.foncia.com
+    network: Foncia
+    cms: Angular (SSR) — fiche annonce complète dans serverApp-state
+    method: adapter
+    adapter: foncia
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]   # réseau national : élargir progressivement (4 579 annonces dans tous les départements configurés)
+    rate_limit_seconds: 1.5
+    max_details_per_run: 250
+    refresh_days: 4
+    options:
+      sitemaps:
+        - https://fr.foncia.com/achat-annonce.xml
+        - https://fr.foncia.com/location-annonce.xml
+    notes: >
+      Commune + code postal (ou département) dans l'URL : pré-filtrage géographique sans requête sur ~22 000
+      annonces nationales. Détail lu dans l'état serveur de la page (prix ou loyer, surface, pièces, DPE/GES,
+      équipements). Annonces non « active » (présentes dans le sitemap) retirées. GPS ignoré (précision
+      non documentée) ; pas de nombre de chambres.
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 
