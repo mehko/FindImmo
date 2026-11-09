@@ -66,13 +66,15 @@ sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`
 | **Active** (adaptateur `human`) | HUMAN Immobilier (`human-immobilier`) | validée le 2026-11-09 : sitemap sans annonces → découverte par les pages de résultats de la commune ; détail via JSON-LD `RealEstateListing` ; annonces « Vendu » retirées ; 35 annonces à Colombes, vente uniquement |
 | **Actives** (`sitemap_jsonld`, plateforme Apimo) | Impact Immo (`impact-immo`), NCI+ (`nciplus`), Futur Transactions (`futurtransactions-colombes`) | validées le 2026-11-09 : le JSON-LD `RealEstateListing` place le bien dans `about` (lu par `find_offer`) ; type, surface, pièces, commune, CP et GPS extraits ; DPE absent. Futur Transactions : vente seule, annonces « VENDU » retirées (`removed_markers`). Impact Immo : ~530 annonces en zone (92), collectées par lots de 100 |
 | **Active** (`html`, sélecteurs seuls) | Arthurimmo Colombes (`arthurimmo-colombes`) | validée le 2026-11-09 : 17 annonces extraites depuis le titre OpenGraph et la liste libellé/valeur ; DPE et GPS non extraits |
+| **Active** (adaptateur `era`) | ERA Immobilier (`eraimmobilier`) | validée le 2026-11-09 : le sitemap (~13 000 URL nationales sans localisation) est inutilisable ; les pages de résultats du département (`/achat/<région>/<dép>`, `/location/…`, `?page=N`) embarquent dans `ng-state` la réponse de recherche **avec les annonces complètes** → 451 annonces du 92 (428 ventes + 23 locations) en ~72 s, sans télécharger les fiches ; DPE présent, GES et GPS absents/ignorés |
 | **Active** (`html`, sélecteurs seuls) | Les Agents de l'Immobilier (`lesagentsdelimmobilier`) | validée le 2026-11-09 : WordPress/Houzez sans données structurées ; 326 annonces dans le sous-sitemap `property` (les biens vendus sont dans `vendus`, non collectés) ; prix, surface, pièces, chambres, type, commune, CP, transaction extraits, DPE lu dans le texte ; pas de pré-filtrage géographique (URL sans commune) → couverture complète en ~3 collectes |
 | HTML sans JSON-LD, moteur connu (adaptateur partagé possible) | Hektor : Act'immo, Coeuret · Netty : Immodurand | un adaptateur par moteur |
-| HTML sans JSON-LD, moteur inconnu ou peu d'annonces dans le sitemap | ASM, Agence Centrale, Cabinet Vincent, GIC, Gridimmo, HF Conseil, I3G, Imax, Intérieur et Jardin, Louzi, MonEden, Montquartier, KLH Conseil, Your New Home, Massiet, ERA, Foncia | sélecteurs à définir au cas par cas |
+| HTML sans JSON-LD, moteur inconnu ou peu d'annonces dans le sitemap | ASM, Agence Centrale, Cabinet Vincent, GIC, Gridimmo, HF Conseil, I3G, Imax, Intérieur et Jardin, Louzi, MonEden, Montquartier, KLH Conseil, Your New Home, Massiet, Foncia | sélecteurs à définir au cas par cas |
 | Déjà enregistrées | Laforêt (active), iad (en attente) | — |
 | Interdites par robots.txt | House Immobilier (drhouse-immo.com) | exclue |
 | Bloquées (403) | Capifrance, Efficity, Keymex, Stéphane Plaza | exclues (non contournées) |
 | Inutilisables | AGS Immobilier (domaine abandonné), Orpi Action Immobilier (404) | à revérifier |
 
-Les sitemaps de Foncia, ERA et Human sont nationaux : le pré-filtrage par commune/code postal est
-indispensable avant toute activation.
+Le sitemap de Foncia est national : un pré-filtrage par commune/code postal est indispensable avant toute
+activation. Pour ERA et HUMAN, dont les sitemaps étaient inexploitables, la découverte passe par les pages de
+résultats (voir les adaptateurs `era` et `human`).
