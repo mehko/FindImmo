@@ -52,3 +52,22 @@ Voir la docstring de `collector/connectors/html.py` (sélecteurs CSS, regex, `fe
 Pour un moteur partagé par plusieurs agences : sous-classe de `SitemapConnector` dans
 `collector/connectors/adapters/`, implémenter `parse_detail`, l'enregistrer dans
 `connectors/registry.py`, ajouter une fixture fictive et des tests.
+
+## Agences de Colombes (92700) — découverte du 2026-11-09
+
+Liste de 37 agences vérifiée par requêtes HTTP (code, redirections), puis `python -m collector discover`
+sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`enabled: false`,
+`pending_validation`) : **aucune source n'est activée**, la validation reste manuelle (étapes ci-dessus).
+
+| Catégorie | Agences | Suite |
+|---|---|---|
+| JSON-LD détecté (méthode `sitemap_jsonld` probable) | Century 21 Beaurepaire, Human Immobilier, Re/Max | candidats prioritaires : renseigner `url_pattern` |
+| HTML sans JSON-LD, moteur connu (adaptateur partagé possible) | Apimo : Arthurimmo, Impact Immo, NCI+, Futur Transactions · Hektor : Act'immo, Coeuret · Netty : Immodurand · Immo-facile : Les Agents de l'Immobilier | un adaptateur par moteur |
+| HTML sans JSON-LD, moteur inconnu ou peu d'annonces dans le sitemap | ASM, Agence Centrale, Cabinet Vincent, GIC, Gridimmo, HF Conseil, I3G, Imax, Intérieur et Jardin, Louzi, MonEden, Montquartier, KLH Conseil, Your New Home, Massiet, ERA, Foncia | sélecteurs à définir au cas par cas |
+| Déjà enregistrées | Laforêt (active), iad (en attente) | — |
+| Interdites par robots.txt | House Immobilier (drhouse-immo.com) | exclue |
+| Bloquées (403) | Capifrance, Efficity, Keymex, Stéphane Plaza | exclues (non contournées) |
+| Inutilisables | AGS Immobilier (domaine abandonné), Orpi Action Immobilier (404) | à revérifier |
+
+Les sitemaps de Foncia, ERA et Human sont nationaux : le pré-filtrage par commune/code postal est
+indispensable avant toute activation.
