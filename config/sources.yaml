@@ -282,6 +282,91 @@ sources:
       sans télécharger les fiches. Mandats vendus déjà exclus par le site (statut 0,1,11). GES et GPS
       absents/ignorés (le GPS est celui du centre de la commune).
 
+  - id: act-immo
+    name: Act'Immo 92 (Colombes)
+    domain: www.act-immo.net
+    url: https://www.act-immo.net
+    cms: Hektor (LBI) — pas de données structurées sur les annonces
+    method: adapter
+    adapter: hektor
+    enabled: true
+    compatibility: compatible
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://www.act-immo.net/sitemap.xml]
+      # Commune dans l'URL : pré-filtrage géographique sans requête. Les biens vendus sont sous /biens-vendus/.
+      url_pattern: '/(?P<transaction>vente|location)/\d+-(?P<city>[a-z-]+)/(?P<type>[a-z-]+)/(?P<ref>\d+)-[^/]+$'
+      transaction_from_url: { /vente/: sale, /location/: rent }
+      fields:
+        title: { selector: "meta[property='og:title']", attr: content }
+        property_type: { selector: "h1.properties-detail__title", regex: '^([^\d(]+?)\s*(?:\d|$)' }
+        price: ".properties-detail__price"
+        surface: { selector: "h1.properties-detail__title", regex: '(\d+(?:[.,]\d+)?)\s*m²' }
+        rooms: { selector: "h1.properties-detail__title", regex: '(\d+)\s*pièces?' }
+        bedrooms: { selector: "h1.properties-detail__title", regex: '(\d+)\s*chambres?' }
+        city: { selector: ".title-v1__part1", regex: '^(.+?)\s*\(\d{5}\)' }
+        postal_code: { selector: ".title-v1__part1", regex: '\((\d{5})\)' }
+        description: { selector: "meta[property='og:description']", attr: content }
+        image: { selector: "meta[property='og:image']", attr: content }
+    notes: >
+      Thème Hektor « properties-detail » (adaptateur `hektor`) : type, pièces, chambres et surface lus dans le titre H1 ; commune et code postal dans le premier bloc « title-v1 ». DPE lu dans le texte de la page (« classe G ») quand présent. Prix du bandeau souvent vide : reconstitué depuis le prix net vendeur et le taux d'honoraires (champ marqué « parsed »). GPS non repris.
+
+  - id: coeuretimmobilier
+    name: Coeuret Immobilier (Colombes)
+    domain: www.coeuretimmobilier.com
+    url: https://www.coeuretimmobilier.com
+    cms: Hektor (LBI) — pas de données structurées sur les annonces
+    method: adapter
+    adapter: hektor
+    enabled: true
+    compatibility: compatible
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://www.coeuretimmobilier.com/sitemap.xml]
+      # Commune dans l'URL : pré-filtrage géographique sans requête. Les biens vendus sont sous /biens-vendus/.
+      url_pattern: '/(?P<transaction>vente|location)/\d+-(?P<city>[a-z-]+)/(?P<type>[a-z-]+)/(?P<ref>\d+)-[^/]+$'
+      transaction_from_url: { /vente/: sale, /location/: rent }
+      fields:
+        title: { selector: "meta[property='og:title']", attr: content }
+        property_type: { selector: "h1.title_item", regex: '^([^\d(]+?)\s*(?:\d|$)' }
+        price: ".prix_item"
+        surface: { selector: "h1.title_item", regex: '(\d+(?:[.,]\d+)?)\s*m²' }
+        rooms: { selector: "h1.title_item", regex: '(\d+)\s*pièces?' }
+        bedrooms: { selector: "h1.title_item", regex: '(\d+)\s*chambres?' }
+        city: { selector: ".text_location_item", regex: '^(.+?)\s*\(\d{5}\)' }
+        postal_code: { selector: ".text_location_item", regex: '\((\d{5})\)' }
+        description: { selector: "meta[property='og:description']", attr: content }
+        image: { selector: "meta[property='og:image']", attr: content }
+    notes: >
+      Autre thème Hektor (« title_item », adaptateur `hektor`) que Act'Immo : mêmes champs, sélecteurs différents. DPE souvent « en cours ». GPS non repris.
+
+  - id: immodurand
+    name: Immodurand (Cabinet R. Durand)
+    domain: www.immodurand.com
+    url: https://www.immodurand.com
+    cms: Netty — JSON-LD Product avec le bien dans offers.itemOffered
+    method: sitemap_jsonld
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://www.immodurand.com/sitemap.xml]
+      # Code postal dans l'URL (« …-colombes-92700,VA1994 ») : pré-filtrage sans requête.
+      url_pattern: '/(?P<transaction>vente|location)/[^/]*-(?P<postal_code>\d{5}),(?P<ref>[A-Z]+\d+)$'
+      transaction_from_url: { /vente/: sale, /location/: rent }
+      property_type_from_url: { "/stationnement-": parking }
+      removed_if_no_price: true   # biens vendus : price 0 dans le JSON-LD
+    notes: >
+      Vente et location (nombreux parkings/garages à Courbevoie, Asnières, La Garenne). DPE, GPS et
+      équipements absents du JSON-LD. URL de l'offre sans schéma : l'URL de la page est utilisée.
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 

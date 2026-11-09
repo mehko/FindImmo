@@ -12,18 +12,6 @@ sources:
     - https://www.asm-immobilier.fr/sitemap_index.xml
     - https://www.asm-immobilier.fr/asm.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: act-immo
-  name: www.act-immo.net
-  domain: www.act-immo.net
-  url: https://www.act-immo.net
-  cms: hektor
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.act-immo.net/sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: agencecentrale92
   name: www.agencecentrale92.com
   domain: www.agencecentrale92.com
@@ -46,18 +34,6 @@ sources:
   compatibility: pending_validation
   options:
     sitemaps: []
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: coeuretimmobilier
-  name: www.coeuretimmobilier.com
-  domain: www.coeuretimmobilier.com
-  url: https://www.coeuretimmobilier.com
-  cms: hektor
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.coeuretimmobilier.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: g-i-c
   name: g-i-c.fr
@@ -117,19 +93,6 @@ sources:
   options:
     sitemaps: []
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: immodurand
-  name: www.immodurand.com
-  domain: www.immodurand.com
-  url: https://www.immodurand.com
-  cms: netty
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.immodurand.com/sitemap.xml
-  notes: 'erreur HTTP (408) : https://www.immodurand.com/vente-immobiliere-la-garenne-colombes,131;
-    pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: interieuretjardin
   name: www.interieuretjardin.com
   domain: www.interieuretjardin.com
