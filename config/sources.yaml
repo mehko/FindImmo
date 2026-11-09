@@ -80,6 +80,30 @@ sources:
       Site propre à l'agence de Colombes (~36 annonces) : JSON-LD Offer + bien (prix, surface, pièces,
       code postal). Pas de transaction dans l'URL : déduite du JSON-LD/titre.
 
+  - id: human-immobilier
+    name: HUMAN Immobilier (Colombes)
+    domain: www.human-immobilier.fr
+    url: https://www.human-immobilier.fr
+    network: HUMAN Immobilier
+    cms: plateforme réseau HUMAN (ASP.NET) — JSON-LD RealEstateListing sur les pages détail
+    method: adapter
+    adapter: human
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      # Le sitemap ne contient pas les annonces : découverte par les pages de résultats de la commune.
+      list_pages: [https://www.human-immobilier.fr/achat-immobilier-colombes]
+      cities: [colombes]
+      max_pages: 5
+    notes: >
+      Vente uniquement (pas de page de location par commune). Annonces « Vendu » traitées comme retirées.
+      Coordonnées GPS de la page = agence, ignorées. Pour une autre commune : ajouter sa page de
+      résultats dans list_pages et son slug dans cities.
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 

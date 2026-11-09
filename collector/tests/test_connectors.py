@@ -1,11 +1,15 @@
 import json
 
+import pytest
+
+from collector.connectors.adapters.human import HumanConnector
 from collector.connectors.adapters.laforet import LaforetConnector
 from collector.connectors.feed import FeedConnector
 from collector.connectors.html import HtmlConnector
 from collector.connectors.jsonld import JsonLdConnector, extract_jsonld, raw_from_jsonld
 from collector.connectors.registry import build_connector
 from collector.connectors.sitemap import iter_sitemap, parse_sitemap
+from collector.http import ListingRemoved
 from collector.models import ListingRef
 
 from .conftest import FIXTURES, FakeSite, fixture, make_ctx, make_source
@@ -174,3 +178,40 @@ def test_feed_connector_mapping(geo, departments):
     assert refs[0].raw is not None and refs[0].raw.postal_code == "83000"
     assert conn.fetch_detail(refs[1]) is refs[1].raw
     json.dumps([r.model_dump() for r in refs])
+
+
+def test_human_adapter_discovery_paginates_and_stops_on_redirect(geo, departments):
+    base = "https://www.human.example/achat-immobilier-ville-test"
+    page2 = fixture("human_list.html").replace("ville-test_900-1001", "ville-test_900-1003").replace(
+        "ville-test_900-1002", "ville-test_900-1004")
+    site = FakeSite({
+        base: fixture("human_list.html"),
+        base + "?page=2": page2,
+        base + "?page=3": (302, "https://www.human.example/acheter/annonces-immobilieres-achat"),
+        "https://www.human.example/acheter/annonces-immobilieres-achat": "<html>recherche nationale</html>",
+    })
+    src = make_source(id="human", method="adapter", adapter="human", domain="www.human.example",
+                      url="https://www.human.example",
+                      options={"list_pages": [base], "cities": ["ville-test"], "max_pages": 5})
+    conn = build_connector(src, make_ctx(site.client(), geo, departments))
+    assert isinstance(conn, HumanConnector)
+    refs = list(conn.discover())
+    assert [r.source_ref for r in refs] == ["900-1001", "900-1002", "900-1003", "900-1004"]  # sans doublon ni hors commune
+    assert refs[0].url == "https://www.human.example/annonce-achat-appartement-ville-test_900-1001"
+
+
+def test_human_adapter_detail_and_sold(geo, departments):
+    src = make_source(id="human", method="adapter", adapter="human", options={})
+    conn = build_connector(src, make_ctx(FakeSite().client(), geo, departments))
+    url = "https://www.human.example/annonce-achat-appartement-ville-test_900-1001"
+    ref = ListingRef(source_id="human", source_ref="900-1001", url=url)
+    raw = conn.parse_detail(fixture("human_detail.html"), ref)
+    assert raw is not None
+    assert raw.transaction == "sale" and raw.property_type == "apartment"
+    assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (310000, 58.2, 3, 2)
+    assert (raw.postal_code, raw.dpe, raw.ges) == ("92000", "D", "B")
+    assert "é" in raw.description and "&#x" not in raw.description  # entités HTML décodées
+    assert raw.features == {"terrace": True, "cellar": True}
+    assert raw.latitude is None  # coordonnées de la page = agence, non reprises
+    with pytest.raises(ListingRemoved):
+        conn.parse_detail(fixture("human_detail_sold.html"), ref)
