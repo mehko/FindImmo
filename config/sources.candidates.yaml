@@ -186,15 +186,3 @@ sources:
     sitemaps:
     - https://www.massietimmo.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: fr-foncia
-  name: fr.foncia.com
-  domain: fr.foncia.com
-  url: https://fr.foncia.com
-  cms: wordpress
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://fr.foncia.com/sitemap.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'

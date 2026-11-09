@@ -4,6 +4,7 @@ import re
 import pytest
 
 from collector.connectors.adapters.era import EraConnector
+from collector.connectors.adapters.foncia import FonciaConnector
 from collector.connectors.adapters.hektor import HektorConnector
 from collector.connectors.adapters.human import HumanConnector
 from collector.connectors.adapters.laforet import LaforetConnector
@@ -433,3 +434,46 @@ def test_hektor_coeuret_theme(geo, departments):
     assert raw is not None
     assert (raw.property_type, raw.price, raw.surface, raw.rooms, raw.bedrooms) == ("Maison", 440000, 81.13, 5, 3)
     assert (raw.city, raw.postal_code, raw.transaction) == ("Ville-Test", "92000", "sale")
+
+
+def test_foncia_adapter_discovery_prefilters_by_postal_code_or_department(geo, departments):
+    sale = ('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            "<url><loc>https://fr.example/achat/ville-test-92000/appartement/00000001.htm</loc></url>"
+            "<url><loc>https://fr.example/achat/paris-75/appartement/00000002.htm</loc></url>"  # département seul (ville multi-codes)
+            "<url><loc>https://fr.example/achat/lyon-69003/appartement/00000003.htm</loc></url>"
+            "<url><loc>https://fr.example/achat/colombes-92700</loc></url></urlset>")  # page de liste : ignorée
+    rent = ('<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            "<url><loc>https://fr.example/location/orly-94310/appartement-meuble/331700001.htm</loc></url></urlset>")
+    site = FakeSite({"https://fr.example/achat-annonce.xml": sale, "https://fr.example/location-annonce.xml": rent})
+    src = make_source(id="foncia", method="adapter", adapter="foncia", domain="fr.example", url="https://fr.example",
+                      options={"sitemaps": ["https://fr.example/achat-annonce.xml", "https://fr.example/location-annonce.xml"]})
+    conn = build_connector(src, make_ctx(site.client(), geo, {"92"}))
+    assert isinstance(conn, FonciaConnector)
+    refs = list(conn.discover())
+    assert [r.source_ref for r in refs] == ["00000001", "00000002", "00000003", "331700001"]
+    assert [(r.postal_code_hint, r.department_hint) for r in refs][:2] == [("92000", "92"), (None, "75")]
+    assert [conn.ref_in_scope(r) for r in refs] == [True, False, False, False]  # seul le 92 est dans la zone
+
+
+def test_foncia_adapter_detail_sale_rent_and_inactive(geo, departments):
+    src = make_source(id="foncia", method="adapter", adapter="foncia", options={})
+    conn = build_connector(src, make_ctx(FakeSite().client(), geo, departments))
+    sale_url = "https://fr.example/achat/ville-test-92000/appartement/00000001.htm"
+    raw = conn.parse_detail(fixture("foncia_sale.html"), ListingRef(source_id="foncia", source_ref="00000001", url=sale_url))
+    assert raw is not None
+    assert (raw.transaction, raw.property_type, raw.price) == ("sale", "apartment", 186000)
+    assert (raw.surface, raw.rooms, raw.city, raw.postal_code) == (36.5, 2, "Ville-Test", "92000")
+    assert (raw.dpe, raw.ges) == ("C", None)  # lettre invalide (« Z ») ignorée
+    assert raw.features == {"elevator": True, "cellar": True}  # « available: False » ignoré
+    assert raw.description == "Bel appartement d'angle. Proche transports."  # échappements Angular décodés
+    assert raw.published_at == "2026-07-24" and raw.image == "https://img.example/foncia/lg.jpeg"
+    assert raw.latitude is None  # précision des coordonnées non documentée
+
+    rent_url = "https://fr.example/location/ville-test-92000/appartement-meuble/331700001.htm"
+    rent = conn.parse_detail(fixture("foncia_rent.html"), ListingRef(source_id="foncia", source_ref="331700001", url=rent_url))
+    assert (rent.transaction, rent.price, rent.surface, rent.rooms, rent.dpe) == ("rent", 1300, 58.38, 3, None)
+    assert rent.features.get("furnished") is True  # type d'URL « appartement-meuble »
+
+    with pytest.raises(ListingRemoved):
+        conn.parse_detail(fixture("foncia_deleted.html"), ListingRef(source_id="foncia", source_ref="00000001", url=sale_url))
+    assert conn.parse_detail("<html></html>", ListingRef(source_id="foncia", source_ref="x", url=sale_url)) is None
