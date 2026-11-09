@@ -13,6 +13,7 @@ from typing import Any
 
 from bs4 import BeautifulSoup
 
+from ..http import ListingRemoved
 from ..models import ListingRef, RawListing
 from ..textparse import (
     clean_text,
@@ -118,7 +119,14 @@ def find_offer(objects: Iterable[dict[str, Any]]) -> tuple[dict[str, Any] | None
         if "realestatelisting" in types:
             offer = deref(obj.get("mainEntity") or obj.get("offers") or obj.get("about"))
             if isinstance(offer, dict):
-                item = deref(offer.get("itemOffered")) if "itemOffered" in offer else offer
+                if "itemOffered" in offer:
+                    item = deref(offer.get("itemOffered"))
+                else:
+                    item = offer
+                    # Variante (plateformes Apimo) : le bien est dans « about », l'offre dans « offers ».
+                    about = deref(obj.get("about"))
+                    if offer is not about and isinstance(about, dict) and "offer" in _types(offer):
+                        item = about
                 return obj, offer, item if isinstance(item, dict) else None
             return obj, None, None
     for obj in objects:
@@ -225,6 +233,11 @@ class JsonLdConnector(SitemapConnector):
             raw = self._fallback(html, ref)
         if raw is None:
             return None
+        # Mention « vendu » dans le titre/la description (option ``removed_markers``, regex).
+        markers = self.options.get("removed_markers") or []
+        texts = (raw.title or "", raw.description or "")
+        if any(re.search(rx, text, re.I) for rx in markers for text in texts):
+            raise ListingRemoved(ref.url, "annonce marquée vendue")
         # Transaction déduite de l'URL quand le JSON-LD ne la précise pas.
         if raw.transaction is None and (tmap := self.options.get("transaction_from_url")):
             for needle, value in tmap.items():
@@ -238,6 +251,10 @@ class JsonLdConnector(SitemapConnector):
                 if needle.lower() in title:
                     raw.transaction = value
                     break
+        if raw.transaction is None and (default := self.options.get("default_transaction")):
+            raw.transaction = default  # site ne proposant qu'un seul type de transaction
+        if raw.property_type is None and (pmap := self.options.get("property_type_from_url")):
+            raw.property_type = next((v for k, v in pmap.items() if k in ref.url), None)
         return raw
 
 

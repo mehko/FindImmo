@@ -127,6 +127,99 @@ sources:
       sitemap sont vendus (isSold) : traités comme retirés. GPS repris seulement si l'adresse est exacte.
       Niveaux DPE/GES 1 à 7 = A à G (déduit d'une fiche affichant « C » pour le niveau 3).
 
+  - id: impact-immo
+    name: Impact Immo (Colombes)
+    domain: impact-immo.com
+    url: https://impact-immo.com
+    cms: Apimo (site agence) — JSON-LD RealEstateListing (bien dans « about »)
+    method: sitemap_jsonld
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://impact-immo.com/sitemap.xml]
+      url_pattern: '/fr/propriete/(?P<transaction>vente|location)\+(?P<type>[a-z-]+)\+(?P<city>[a-z0-9-]+)\+(?:[^/]*\+)?(?P<ref>\d+)$'
+      transaction_from_url: { /propriete/vente+: sale, /propriete/location+: rent }
+      property_type_from_url: { "+garage-parking+": parking }
+    notes: >
+      Commune dans l'URL : pré-filtrage sans requête. DPE absent du JSON-LD. L'agence couvre aussi Clichy, Asnières, Puteaux, etc.
+
+  - id: nciplus
+    name: NCI+ (Colombes)
+    domain: nciplus.fr
+    url: https://nciplus.fr
+    cms: Apimo (site agence) — JSON-LD RealEstateListing (bien dans « about »)
+    method: sitemap_jsonld
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://nciplus.fr/sitemap.xml]
+      url_pattern: '/fr/propriete/(?P<transaction>vente|location)\+(?P<type>[a-z-]+)\+(?P<city>[a-z0-9-]+)\+(?:[^/]*\+)?(?P<ref>\d+)$'
+      transaction_from_url: { /propriete/vente+: sale, /propriete/location+: rent }
+    notes: >
+      Même plateforme qu'Impact Immo. Peu d'annonces (~5). DPE absent du JSON-LD.
+
+  - id: futurtransactions-colombes
+    name: Futur Transactions Colombes
+    domain: futurtransactions-colombes.com
+    url: https://futurtransactions-colombes.com
+    cms: Apimo (site agence) — JSON-LD RealEstateListing (bien dans « about »)
+    method: sitemap_jsonld
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://futurtransactions-colombes.com/sitemap.xml]
+      url_pattern: '/fr/propri[^/]+/(?P<ref>\d+)$'
+      default_transaction: sale   # le site ne propose que de la vente
+      removed_markers: ['^\s*VENDU']
+    notes: >
+      URL sans commune ni transaction (vente uniquement) ; annonces dont la description commence par « VENDU » traitées comme retirées.
+
+  - id: arthurimmo-colombes
+    name: Arthurimmo Colombes
+    domain: colombes.arthurimmo.com
+    url: https://colombes.arthurimmo.com
+    network: Arthurimmo
+    cms: plateforme Arthurimmo (studio-net, Tailwind) — pas de données structurées sur les annonces
+    method: html
+    enabled: true
+    compatibility: compatible
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      sitemaps: [https://colombes.arthurimmo.com/sitemap.xml]
+      # Code postal dans l'URL : pré-filtrage géographique sans requête.
+      url_pattern: '/annonces/(?P<transaction>achat|location)/(?P<type>[a-z-]+)/(?P<city>[a-z-]+)-(?P<postal_code>\d{5})/(?P<ref>\d+)\.htm$'
+      transaction_from_url: { /annonces/achat/: sale, /annonces/location/: rent }
+      fields:
+        title: { selector: "meta[property='og:title']", attr: content }
+        # Titre type : « Acheter appartement de 4 pièces 77 m² 340 000 € à Colombes (92700) : … »
+        property_type: { selector: "meta[property='og:title']", attr: content, regex: '^(?:Acheter|Louer) (.+?)(?: de \d| \d| à )' }
+        price: { selector: "meta[property='og:title']", attr: content, regex: '([\d  ]+) ?€' }
+        surface: { selector: "meta[property='og:title']", attr: content, regex: '(\d+(?:[.,]\d+)?) m²' }
+        rooms: { selector: "meta[property='og:title']", attr: content, regex: '(\d+) pièces?' }
+        city: { selector: "meta[property='og:title']", attr: content, regex: ' à (.+?) \(\d{5}\)' }
+        postal_code: { selector: "meta[property='og:title']", attr: content, regex: '\((\d{5})\)' }
+        bedrooms: { selector: "li:-soup-contains('Nombre de chambres') > div:last-child" }
+        description: { selector: "meta[property='og:description']", attr: content }
+        image: { selector: "meta[property='og:image']", attr: content }
+    notes: >
+      Données lues dans le titre OpenGraph et la liste « libellé / valeur ». Description tronquée par le site
+      (méta). DPE et GPS non extraits (classe DPE non exposée en texte ; coordonnées de précision incertaine).
+      L'agence vend aussi hors Colombes (95, 78, 75) : filtrage par les départements configurés.
+
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.
 

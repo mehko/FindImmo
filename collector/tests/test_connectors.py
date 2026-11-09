@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 
@@ -269,3 +270,42 @@ def test_remax_adapter_detail_sold_and_rent(geo, departments):
     assert rent.transaction == "rent" and rent.price == 995
     assert (rent.latitude, rent.longitude) == (48.9, 2.25)  # adresse exacte : coordonnées reprises
     assert conn.parse_detail("<html></html>", ref) is None  # page sans __NEXT_DATA__
+
+
+def test_jsonld_listing_with_property_in_about_apimo_variant(geo, departments):
+    """Plateformes Apimo : RealEstateListing avec le bien dans « about » et l'offre dans « offers »."""
+    raw = raw_from_jsonld(extract_jsonld(fixture("jsonld_apimo.html")), "test", "9000001", "https://x")
+    assert raw is not None
+    assert raw.property_type == "house" and raw.price == 755000
+    assert (raw.surface, raw.rooms, raw.bedrooms) == (96, 4, 3)
+    assert (raw.city, raw.postal_code, raw.latitude) == ("Ville-Test", "92000", 48.9)
+
+
+def test_jsonld_connector_default_transaction_url_type_and_removed_markers(geo, departments):
+    src = make_source(options={"default_transaction": "sale", "removed_markers": [r"^\s*VENDU"],
+                               "property_type_from_url": {"+garage-parking+": "parking"}})
+    conn = JsonLdConnector(src, make_ctx(FakeSite().client(), geo, departments))
+    url = "https://agence.example/fr/propriete/vente+maison+ville-test+maison-4p+9000001"
+    raw = conn.parse_detail(fixture("jsonld_apimo.html"), ListingRef(source_id="test", source_ref="9000001", url=url))
+    assert raw.transaction == "sale" and raw.property_type == "house"  # le type JSON-LD prime sur l'URL
+    sold_url = url.replace("vente+maison+", "vente+garage-parking+")
+    with pytest.raises(ListingRemoved):
+        conn.parse_detail(fixture("jsonld_apimo_sold.html"), ListingRef(source_id="test", source_ref="9000001", url=sold_url))
+
+
+def test_html_connector_og_title_configuration_of_arthurimmo(geo, departments):
+    """La configuration réelle de la source `arthurimmo-colombes` doit extraire une annonce fictive de même forme."""
+    from collector.config import load_sources
+
+    cfg = next(s for s in load_sources() if s.id == "arthurimmo-colombes")
+    conn = HtmlConnector(cfg, make_ctx(FakeSite().client(), geo, departments))
+    url = "https://colombes.example/annonces/achat/appartement/ville-test-92000/1.htm"
+    raw = conn.parse_detail(fixture("html_og_listing.html"), ListingRef(source_id=cfg.id, source_ref="1", url=url))
+    assert raw is not None
+    assert (raw.transaction, raw.property_type) == ("sale", "appartement")
+    assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (340000, 77, 4, 2)
+    assert (raw.city, raw.postal_code) == ("Ville-Test", "92000")
+    assert raw.image == "https://media.example/biens/1/photo"
+    # La découverte retient une URL d'annonce et pré-filtre par code postal.
+    m = re.search(cfg.options["url_pattern"], url)
+    assert m and m["postal_code"] == "92000" and m["ref"] == "1"
