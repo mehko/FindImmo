@@ -112,3 +112,26 @@ JavaScript depuis `/api/v1/properties`, route interdite : elle n'est **pas** uti
   (bandeau rouge `div.bg-ih-red-80`, vide sur un bien disponible) est volontairement étroite ; si Hosman garde les fiches vendues en
   ligne sans ce mot, elles resteront actives jusqu'à suppression de la page. À surveiller au premier cas réel.
 * Vente uniquement ; DPE non exposé.
+
+### Le Figaro Immobilier (immobilier.lefigaro.fr) — activé sous autorisation écrite (2026-11-10)
+
+Portail d'annonces de Figaro Classifieds. **Les conditions d'utilisation (art. 6) interdisent** toute extraction ou collecte
+automatisée du contenu et des bases de données sans autorisation écrite préalable ; `robots.txt` autorise pourtant les pages de liste
+(`/annonces/…`, pagination `?page=N`) mais interdit `/api/`, `/recherche/` et les URL à paramètres. La source n'a donc été activée qu'après
+l'**accord écrit de Figaro Classifieds, obtenu par le propriétaire du projet**.
+
+> **À consigner par le propriétaire (non connus du dépôt)** : date de l'accord, périmètre (communes/départements), fréquence maximale,
+> et surtout ce qui concerne la **publication** des données dans la PWA. Si l'accord est plus restrictif que la configuration actuelle,
+> réduire `list_pages` / `min_interval_hours`, ou ajuster `publish` (`image`, `description_chars`) sur la source, voire la désactiver.
+
+* **Méthode** : listes par commune (`immobilier-vente-bien-<commune>+<cp>.html`, `…-location-…`). Le site est une application Nuxt : chaque
+  page embarque dans `__NUXT_DATA__` (format « devalue ») la réponse de sa liste avec les annonces **complètes** (prix, surface, pièces,
+  DPE, agence, photos) : aucune fiche n'est téléchargée. Les sitemaps de fiches (~600 000, sans localisation) ne sont pas utilisés.
+* **Piège** : au-delà de la dernière page, le site renvoie une liste générique (`totalPage` passe à 100). L'adaptateur s'arrête strictement
+  au total annoncé par la **première** page. Les éléments sponsorisés se répètent d'une page à l'autre : dédoublonnage par identifiant.
+* **Charge** : ~1,9 Mo par page décompressée. Colombes seule : 850 annonces (vente), soit 28 pages ; 707 annonces distinctes en mesure
+  réelle (vente et location, 127 agences) en 1 min 35. Les collectes tournent toutes les 3 h : l'option générique **`min_interval_hours`**
+  (24 h ici) évite de relire ces pages à chaque exécution. Une source ignorée n'a pas de lot : ses annonces ne changent pas de statut.
+* **Doublons** : un portail reprend les annonces d'agences déjà collectées en direct ; le dédoublonnage du pipeline les fusionne.
+* GPS ignoré (2 décimales : niveau commune). Pour étendre le périmètre, ajouter des communes à `list_pages` en tenant compte du poids.
+
