@@ -23,7 +23,7 @@ from .connectors.registry import build_connector
 from .geo import GeoIndex
 from .http import BlockedError, FetchError, PoliteClient
 from .log import get_logger, log
-from .models import ListingRef, SourceBatch, SourceRunStatus
+from .models import ListingRef, ListingStatus, SourceBatch, SourceRunStatus
 from .pipeline.normalize import listing_id
 from .pipeline.state import State, write_json_atomic
 from .pipeline.tracker import now_iso, parse_iso
@@ -67,10 +67,16 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
         return batch
 
     in_scope: list[ListingRef] = []
+    discovered: set[str] = set()
+    # Option ``partial_discovery`` : la source ne peut pas énumérer toutes ses annonces (liste plafonnée, route
+    # interdite par robots.txt…). On ne conclut alors JAMAIS d'une absence ; en contrepartie les annonces
+    # connues mais non redécouvertes sont revérifiées directement par leur page (voir plus bas).
+    partial = bool(source.options.get("partial_discovery"))
     try:
         discovery_complete = True
         for ref in connector.discover():
             status.refs_discovered += 1
+            discovered.add(ref.source_ref)
             if ref.source_ref in skip or connector.ref_in_scope(ref) is False:
                 continue
             in_scope.append(ref)
@@ -78,7 +84,7 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
                 discovery_complete = False
                 status.errors.append("découverte interrompue : budget de temps atteint")
                 break
-        status.discovery_complete = discovery_complete
+        status.discovery_complete = discovery_complete and not partial
     except BlockedError as exc:
         status.errors.append(f"bloqué : {exc}")
         status.finished_at = now_iso()
@@ -87,6 +93,16 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
     except Exception as exc:  # noqa: BLE001 - toute erreur d'une source est isolée
         status.errors.append(f"découverte : {type(exc).__name__}: {exc}")
         log(logger, logging.ERROR, "échec de découverte", source=source.id, error=str(exc))
+    revalidate: set[str] = set()
+    if partial:
+        # Annonces actives connues mais absentes de la découverte partielle : on les remet dans la file avec l'URL
+        # mémorisée. Si leur page a disparu, été redirigée ou affiche « vendu », elles seront marquées retirées ;
+        # sinon elles sont simplement rafraîchies à la cadence ``refresh_days``.
+        for listing in state.listings.values():
+            if (listing.source_id == source.id and listing.status != ListingStatus.GONE
+                    and listing.source_ref not in discovered and listing.source_ref not in skip):
+                in_scope.append(connector.make_ref(listing.source_ref, listing.url, department_hint=listing.department))
+                revalidate.add(listing.source_ref)
     status.refs_in_scope = len(in_scope)
 
     refresh_before = (parse_iso(now_iso()) - timedelta(days=source.refresh_days)).isoformat().replace("+00:00", "Z")
@@ -142,11 +158,15 @@ def collect_source(source: SourceConfig, client: PoliteClient, geo: GeoIndex, de
             batch.lastmods[ref.source_ref] = ref.lastmod
         status.details_fetched += 1
 
-    known = {r.source_ref for r in in_scope if listing_id(source.id, r.source_ref) in state.listings}
+    known = {r.source_ref for r in in_scope if r.source_ref not in revalidate and listing_id(source.id, r.source_ref) in state.listings}
     fetched_refs = {r.source_ref for r in batch.listings}
     batch.seen_refs = sorted((known | fetched_refs) - gone_refs)
     batch.removed_refs = sorted(gone_refs)
-    status.backlog = sum(1 for r in in_scope if r.source_ref not in known and r.source_ref not in fetched_refs)
+    status.backlog = sum(
+        1 for r in in_scope
+        if r.source_ref not in known and r.source_ref not in fetched_refs and r.source_ref not in gone_refs
+        and (r.source_ref not in revalidate or _priority(r, state, refresh_before) is not None)
+    )
     status.ok = status.refs_discovered > 0 or status.discovery_complete
     if status.refs_discovered == 0 and not status.errors:
         status.errors.append("aucune référence découverte")

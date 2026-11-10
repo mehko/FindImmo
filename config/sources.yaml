@@ -4,6 +4,9 @@
 # Statut de compatibilité : compatible | partial | pending_validation | blocked | incompatible | fixture
 # Seules les sources `enabled: true` sont collectées. robots.txt est toujours respecté.
 # Évaluations du 2026-11-08 (voir docs/SOURCES.md pour le détail).
+#
+# Option `partial_discovery: true` (dans `options`) : la source ne peut pas énumérer toutes ses annonces. Une absence ne retire
+# jamais une annonce ; les annonces connues mais non redécouvertes sont revérifiées par leur page (voir docs/SOURCES.md, Hosman).
 
 sources:
   # --------------------------------------------------------------------------- sources actives
@@ -496,6 +499,74 @@ sources:
       ~500 pages /bien/ dont environ la moitié sont vendues ou louées (archives conservées). Le « 92400 » visible dans
       le texte de la page est l'adresse de l'agence : le code postal du bien vient du JSON-LD. Agence de Courbevoie qui
       propose aussi Paris, Puteaux, Colombes, etc. ; filtrage géographique par les départements configurés après lecture.
+
+  - id: hosman
+    name: Hosman (agence en ligne, Hauts-de-Seine)
+    domain: www.hosman.co
+    url: https://www.hosman.co
+    network: Hosman
+    cms: Rails + Stimulus (rendu serveur sur les pages publiques) — pas de données structurées
+    method: html
+    enabled: true
+    compatibility: partial
+    departments: ["92"]
+    rate_limit_seconds: 1.5
+    max_details_per_run: 100
+    refresh_days: 3
+    options:
+      # DÉCOUVERTE PARTIELLE : la liste complète n'est chargée que par /api/v1/properties, interdit par robots.txt.
+      # Seules les pages publiques /b/achat-<ville> sont lues : elles n'affichent que 9 fiches chacune (carrousel).
+      # Les 200 pages /t/achat-<type>-<ville> du 92 n'ajoutent aucune fiche : ces 25 pages donnent 62 fiches, vraisemblablement
+      # le catalogue complet (mesure du 2026-11-10). Les annonces connues mais non redécouvertes sont revérifiées par leur page.
+      partial_discovery: true
+      list_pages:
+        - https://www.hosman.co/b/achat-asnieres-sur-seine
+        - https://www.hosman.co/b/achat-bois-colombes
+        - https://www.hosman.co/b/achat-boulogne-billancourt
+        - https://www.hosman.co/b/achat-chaville
+        - https://www.hosman.co/b/achat-clamart
+        - https://www.hosman.co/b/achat-clichy
+        - https://www.hosman.co/b/achat-colombes
+        - https://www.hosman.co/b/achat-courbevoie
+        - https://www.hosman.co/b/achat-garches
+        - https://www.hosman.co/b/achat-gennevilliers
+        - https://www.hosman.co/b/achat-issy-les-moulineaux
+        - https://www.hosman.co/b/achat-la-garenne-colombes
+        - https://www.hosman.co/b/achat-levallois-perret
+        - https://www.hosman.co/b/achat-malakoff
+        - https://www.hosman.co/b/achat-meudon
+        - https://www.hosman.co/b/achat-montrouge
+        - https://www.hosman.co/b/achat-nanterre
+        - https://www.hosman.co/b/achat-puteaux
+        - https://www.hosman.co/b/achat-rueil-malmaison
+        - https://www.hosman.co/b/achat-saint-cloud
+        - https://www.hosman.co/b/achat-sevres
+        - https://www.hosman.co/b/achat-suresnes
+        - https://www.hosman.co/b/achat-vanves
+        - https://www.hosman.co/b/achat-vaucresson
+        - https://www.hosman.co/b/achat-ville-d'avray
+      link_selector: "a[href^='/a/']"
+      # /a/vente-appartement-41m2-92700-colombes-75de31
+      url_pattern: '/a/(?P<transaction>vente|location)-(?P<type>[a-z-]+?)-(?P<surface>\d+)m2-(?P<postal_code>\d{5})-(?P<city>.+)-(?P<ref>[0-9a-f]{4,8})$'
+      transaction_from_url: { /a/vente-: sale, /a/location-: rent }
+      # Bandeau de statut rouge (vide sur un bien disponible). Son texte n'a pas pu être observé sur un bien vendu : la règle
+      # est volontairement étroite (elle ne retire que sur un mot explicite) ; une fiche supprimée ou redirigée est déjà retirée.
+      removed_if:
+        - { selector: "div.bg-ih-red-80", regex: '(?i)vendu|sous offre|sous compromis|indisponible|plus disponible' }
+      fields:
+        title: { selector: "meta[property='og:title']", attr: content }
+        # « Appartement - Rue Maurice Berteaux, 92700 Colombes » puis « 3 pièces — 41.2 m² — 2 chambres » puis « 260 000 € »
+        property_type: { selector: "main p.text-xl.font-semibold", regex: '^(.+?)\s+-\s' }
+        postal_code: { selector: "main p.text-xl.font-semibold", regex: '\b(\d{5})\b' }
+        city: { selector: "main p.text-xl.font-semibold", regex: '\b\d{5}\s+(.+)$' }
+        rooms: { selector: "main p.text-ih-neutral-70.text-sm", regex: '(\d+)\s*pièces?' }
+        surface: { selector: "main p.text-ih-neutral-70.text-sm", regex: '(\d+(?:[.,]\d+)?)\s*m²' }
+        bedrooms: { selector: "main p.text-ih-neutral-70.text-sm", regex: '(\d+)\s*chambres?' }
+        price: "main p.text-2xl.font-bold"
+        image: { selector: "meta[property='og:image']", attr: content }
+    notes: >
+      Vente uniquement (la location est de la gestion). Source en découverte partielle : une absence ne retire jamais une
+      annonce ; seules une page supprimée/redirigée ou le bandeau « vendu » le font. DPE non exposé.
 
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.

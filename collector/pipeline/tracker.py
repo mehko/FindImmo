@@ -6,7 +6,9 @@ Cycle de vie d'une annonce :
      ▲                                                    │ (absente ≥ N fois et ≥ X jours)
      └──────────────(revue)─── ``reappeared`` ◄──────── ``gone``
 
-Une source en échec (ou dont la découverte est partielle) ne modifie jamais le statut de ses annonces.
+Une source en échec ne modifie jamais le statut de ses annonces. Si sa découverte est partielle (option
+``partial_discovery``, ou découverte interrompue), seules les annonces dont le retrait est confirmé (page supprimée,
+redirigée ou « vendu ») progressent dans ce cycle ; une simple absence ne prouve rien.
 """
 
 from __future__ import annotations
@@ -134,6 +136,10 @@ class Tracker:
 
         if batch.status.ok and batch.status.discovery_complete:
             self._mark_unseen(sid, seen_ids)
+        elif batch.status.ok and (confirmed := {listing_id(sid, r) for r in refs.removed}):
+            # Découverte partielle (option ``partial_discovery``) ou interrompue : une absence ne prouve rien, mais un
+            # retrait CONFIRMÉ (page supprimée, redirigée ou « vendu ») fait progresser le cycle de vie.
+            self._mark_unseen(sid, seen_ids, only=confirmed)
         src_state.listings_count = sum(
             1 for x in self.state.listings.values() if x.source_id == sid and x.status != ListingStatus.GONE
         )
@@ -190,10 +196,12 @@ class Tracker:
     def _features_changed(old: dict[str, bool], new: dict[str, bool]) -> bool:
         return any(k in old and old[k] != v for k, v in new.items())
 
-    def _mark_unseen(self, sid: str, seen_ids: set[str]) -> None:
+    def _mark_unseen(self, sid: str, seen_ids: set[str], only: set[str] | None = None) -> None:
         now = parse_iso(self.now)
         for listing in self.state.listings.values():
             if listing.source_id != sid or listing.id in seen_ids or listing.status == ListingStatus.GONE:
+                continue
+            if only is not None and listing.id not in only:
                 continue
             listing.unseen_count += 1
             if listing.unseen_since is None:

@@ -155,3 +155,67 @@ def test_removed_listings_redirect_and_intermittent_soft_404(tmp_path, geo, depa
     cycle("2026-11-03T00:00:00Z")
     st = State.load(state_dir)
     assert sorted(x.status.value for x in st.listings.values()) == ["active", "unavailable_unconfirmed"]
+
+
+def test_partial_discovery_never_infers_removal_from_absence(tmp_path, geo, departments, settings):
+    """Option ``partial_discovery`` : une annonce absente de la découverte est revérifiée par sa propre page."""
+    m1, m2 = f"{BASE}/annonces/vente/maison/meaux-77100/M1", f"{BASE}/annonces/vente/maison/toulon-83000/M2"
+    refs = [("M1", "meaux", "77100"), ("M2", "toulon", "83000")]
+    site = FakeSite({
+        f"{BASE}/robots.txt": "User-agent: *\nDisallow: /admin/\n",
+        f"{BASE}/sitemap.xml": sitemap(refs),
+        m1: page("M1", 250000, "Meaux", "77100"),
+        m2: page("M2", 320000, "Toulon", "83000"),
+    })
+    src = make_source(options={"sitemaps": [f"{BASE}/sitemap.xml"], "url_pattern": PATTERN, "partial_discovery": True},
+                      max_details_per_run=10, refresh_days=0)
+    deps = load_departments()
+    state_dir, raw_dir, public = tmp_path / "state", tmp_path / "raw", tmp_path / "public"
+
+    def cycle(now: str):
+        run_collect([src], geo, departments, State.load(state_dir), settings, raw_dir, client=site.client())
+        return run_process(raw_dir, state_dir, public, [src], deps, geo, settings, now=now)
+
+    def status_of(code: str) -> str:
+        manifest = Manifest.model_validate_json((public / "manifest.json").read_text())
+        path = next(d for d in manifest.departments if d.code == code).path
+        return DepartmentFile.model_validate_json((public / path).read_text()).listings[0].status
+
+    assert cycle("2026-11-01T00:00:00Z")["new_listings"] == 2
+
+    # M2 sort de la découverte (liste plafonnée) mais sa page répond toujours : elle reste active, sans alerte.
+    site.set(f"{BASE}/sitemap.xml", sitemap(refs[:1]))
+    hits_before = site.hits[m2]
+    r2 = cycle("2026-11-02T00:00:00Z")
+    assert site.hits[m2] == hits_before + 1  # revérifiée directement
+    assert r2["unavailable"] == 0 and status_of("83") == "active"
+
+    # Sa page disparaît : retrait CONFIRMÉ → indisponible ; M1, toujours découverte, reste active.
+    site.set(m2, (404, "introuvable"))
+    r3 = cycle("2026-11-03T00:00:00Z")
+    assert r3["unavailable"] == 1 and status_of("83") == "unavailable_unconfirmed" and status_of("77") == "active"
+
+    # Absence durable confirmée : la page n'est plus retéléchargée, le cycle de vie suit son cours jusqu'à « gone ».
+    hits_after_removal = site.hits[m2]
+    cycle("2026-11-05T00:00:00Z")
+    r5 = cycle("2026-11-12T00:00:00Z")
+    assert site.hits[m2] == hits_after_removal and r5["gone"] == 1
+
+
+def test_complete_discovery_is_unchanged_without_the_option(tmp_path, geo, departments, settings):
+    """Sans l'option, l'absence du sitemap reste un signal (comportement historique)."""
+    m2 = f"{BASE}/annonces/vente/maison/toulon-83000/M2"
+    refs = [("M1", "meaux", "77100"), ("M2", "toulon", "83000")]
+    site = FakeSite({f"{BASE}/robots.txt": "", f"{BASE}/sitemap.xml": sitemap(refs),
+                     f"{BASE}/annonces/vente/maison/meaux-77100/M1": page("M1", 250000, "Meaux", "77100"), m2: page("M2", 320000, "Toulon", "83000")})
+    src = make_source(options={"sitemaps": [f"{BASE}/sitemap.xml"], "url_pattern": PATTERN}, max_details_per_run=10, refresh_days=30)
+    state_dir, raw_dir, public = tmp_path / "state", tmp_path / "raw", tmp_path / "public"
+
+    def cycle(now: str):
+        run_collect([src], geo, departments, State.load(state_dir), settings, raw_dir, client=site.client())
+        return run_process(raw_dir, state_dir, public, [src], load_departments(), geo, settings, now=now)
+
+    cycle("2026-11-01T00:00:00Z")
+    site.set(f"{BASE}/sitemap.xml", sitemap(refs[:1]))
+    hits = site.hits[m2]
+    assert cycle("2026-11-02T00:00:00Z")["unavailable"] == 1 and site.hits[m2] == hits  # pas de revérification
