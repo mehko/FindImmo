@@ -1,17 +1,4 @@
 sources:
-- id: asm-immobilier
-  name: www.asm-immobilier.fr
-  domain: www.asm-immobilier.fr
-  url: https://www.asm-immobilier.fr
-  cms: wordpress
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.asm-immobilier.fr/sitemap_index.xml
-    - https://www.asm-immobilier.fr/asm.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: agencecentrale92
   name: www.agencecentrale92.com
   domain: www.agencecentrale92.com
@@ -46,17 +33,6 @@ sources:
   options:
     sitemaps:
     - https://g-i-c.fr/sitemaps.xml
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: gridimmo
-  name: www.gridimmo.fr
-  domain: www.gridimmo.fr
-  url: https://www.gridimmo.fr
-  cms: null
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps: []
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: hfconseilimmobilier
   name: www.hfconseilimmobilier.com
@@ -103,18 +79,6 @@ sources:
   compatibility: pending_validation
   options:
     sitemaps: []
-  notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
-- id: louzi-immobilier
-  name: www.louzi-immobilier.com
-  domain: www.louzi-immobilier.com
-  url: https://www.louzi-immobilier.com
-  cms: null
-  method: html
-  enabled: false
-  compatibility: pending_validation
-  options:
-    sitemaps:
-    - https://www.louzi-immobilier.com/sitemap.xml
   notes: 'pas de JSON-LD : sélecteurs HTML à définir manuellement'
 - id: monedenimmobilier
   name: www.monedenimmobilier.com

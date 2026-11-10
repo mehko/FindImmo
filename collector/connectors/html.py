@@ -15,6 +15,9 @@ options:
     description: ".description"
     image: { selector: "meta[property='og:image']", attr: "content" }
   features_selector: ".features li"                  # liste d'équipements (texte)
+  removed_if: [{ selector: ".statut", regex: "Vendu|Loué" }]   # texte d'un nœud → annonce retirée
+  list_page_param: page                              # pagination des list_pages (?page=2…), arrêt à la première page sans nouveauté
+  transaction_from_url: { /vente/: sale }            # ou transaction_from_text (règles regex sur un texte de la page)
 ```
 
 Les valeurs non trouvées restent nulles.
@@ -29,6 +32,7 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
+from ..http import ListingRemoved
 from ..models import ListingRef, RawListing
 from ..textparse import (
     clean_text,
@@ -84,6 +88,15 @@ def extract_fields(soup: BeautifulSoup, fields: dict[str, Any]) -> dict[str, Any
     return {k: v for k, v in values.items() if v is not None}
 
 
+def raise_if_removed(soup: BeautifulSoup, specs: list[dict[str, str]] | None, url: str) -> None:
+    """Option ``removed_if`` : liste de ``{selector, regex}``. Si un nœud correspondant a un texte qui satisfait la
+    regex (sensible à la casse), l'annonce est considérée comme retirée (vendue, louée…)."""
+    for spec in specs or []:
+        for node in soup.select(spec["selector"]):
+            if re.search(spec["regex"], node.get_text(" ", strip=True)):
+                raise ListingRemoved(url, f"annonce marquée « {spec['regex']} »")
+
+
 class HtmlConnector(SitemapConnector):
     method = "html"
 
@@ -92,18 +105,27 @@ class HtmlConnector(SitemapConnector):
             yield from super().discover()
             return
         pattern = re.compile(self.options["url_pattern"])
+        param = self.options.get("list_page_param")  # ex. « page » → ?page=2, ?page=3…
+        max_pages = int(self.options.get("max_list_pages", 30)) if param else 1
         seen: set[str] = set()
-        for page in self.options["list_pages"]:
-            soup = BeautifulSoup(self.fetch_page(page), "lxml")
-            for a in soup.select(self.options.get("link_selector", "a[href]")):
-                href = urljoin(page, str(a.get("href", "")))
-                m = pattern.search(href)
-                if m and (ref := self.ref_from_match(href, m, None)) and ref.source_ref not in seen:
-                    seen.add(ref.source_ref)
-                    yield ref
+        for base in self.options["list_pages"]:
+            for number in range(1, max_pages + 1):
+                page = base if number == 1 else f"{base}{'&' if '?' in base else '?'}{param}={number}"
+                soup = BeautifulSoup(self.fetch_page(page), "lxml")
+                new = 0
+                for a in soup.select(self.options.get("link_selector", "a[href]")):
+                    href = urljoin(page, str(a.get("href", "")))
+                    m = pattern.search(href)
+                    if m and (ref := self.ref_from_match(href, m, None)) and ref.source_ref not in seen:
+                        seen.add(ref.source_ref)
+                        new += 1
+                        yield ref
+                if not new:
+                    break  # page vide ou sans nouveauté : fin de la pagination
 
     def parse_detail(self, html: str, ref: ListingRef) -> RawListing | None:
         soup = BeautifulSoup(html, "lxml")
+        raise_if_removed(soup, self.options.get("removed_if"), ref.url)
         values = extract_fields(soup, self.options.get("fields") or {})
         parsed: list[str] = []
         title = values.get("title")
@@ -125,6 +147,10 @@ class HtmlConnector(SitemapConnector):
             return None
         if values.get("transaction") is None and (tmap := self.options.get("transaction_from_url")):
             values["transaction"] = next((v for k, v in tmap.items() if k in ref.url), None)
+        if values.get("transaction") is None and (spec := self.options.get("transaction_from_text")):
+            # Ex. { selector: "p.prix", rules: { "/\\s*mois": rent }, default: sale } : « 90 € /mois » → location.
+            text = select_value(soup, spec["selector"]) or ""
+            values["transaction"] = next((v for rx, v in spec["rules"].items() if re.search(rx, text, re.I)), spec.get("default"))
         return RawListing(
             source_id=self.source.id,
             source_ref=ref.source_ref,
