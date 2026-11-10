@@ -96,9 +96,19 @@ Pour ERA et HUMAN, dont les sitemaps étaient inexploitables, la découverte pas
 * Même thème Houzez ≠ mêmes sélecteurs : ASM et Les Agents de l'Immobilier ont des gabarits Elementor différents (libellés et
   structure du `<li>`), donc une configuration par site.
 
-### Hosman (hosman.co) — non activé
+### Hosman (hosman.co) — activé en découverte partielle (2026-11-10)
 
 Agence en ligne nationale. `robots.txt` autorise les pages publiques mais interdit `/api/`. Les fiches (`/a/…`) ne sont pas dans le
-sitemap ; les pages de ville `/b/achat-<ville>` n'affichent que **9 fiches** (carrousel plafonné, identique pour les 25 communes du 92 testées :
-62 fiches uniques). La liste complète est chargée par JavaScript depuis `/api/v1/properties`, route interdite : la collecter reviendrait à
-contourner `robots.txt`. Une découverte plafonnée ne peut pas servir de base à la détection des annonces retirées.
+sitemap ; les pages de ville `/b/achat-<ville>` n'affichent que **9 fiches** (carrousel plafonné). La liste complète est chargée par
+JavaScript depuis `/api/v1/properties`, route interdite : elle n'est **pas** utilisée.
+
+* **Découverte** : les 25 pages `/b/achat-<ville>` du 92 donnent 62 fiches uniques. Les 200 pages `/t/achat-<type>-<ville>` du même
+  département (8 types × 25 communes) n'en ajoutent **aucune** : 62 est très probablement le catalogue complet, sans en avoir la preuve.
+* **Option `partial_discovery`** (générique) : la découverte n'est plus considérée comme exhaustive, donc une annonce absente n'est
+  **jamais** marquée indisponible. Pour éviter qu'une annonce vendue reste affichée indéfiniment, les annonces connues mais non
+  redécouvertes sont **revérifiées directement par leur page** (à la cadence `refresh_days`) ; une page supprimée, redirigée ou portant
+  le bandeau « vendu » les retire, et seul ce retrait *confirmé* fait progresser le cycle de vie (`unavailable_unconfirmed` → `gone`).
+* **Point non vérifié** : l'aspect d'une fiche Hosman vendue n'a pas pu être observé (aucune dans l'échantillon). La règle `removed_if`
+  (bandeau rouge `div.bg-ih-red-80`, vide sur un bien disponible) est volontairement étroite ; si Hosman garde les fiches vendues en
+  ligne sans ce mot, elles resteront actives jusqu'à suppression de la page. À surveiller au premier cas réel.
+* Vente uniquement ; DPE non exposé.

@@ -552,3 +552,24 @@ def test_louzi_paginated_discovery_and_detail(geo, departments):
     assert (raw.transaction, raw.property_type, raw.city, raw.postal_code) == ("sale", "Appartement T2", "Ville-Test", "92000")
     assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (174000, 32, 2, 1)
     assert raw.description == "Bel appartement F2 très bien agencé." and url.endswith("1000001")
+
+
+def test_hosman_configuration_discovery_detail_and_sold_banner(geo, departments):
+    from collector.config import load_sources
+
+    cfg = next(s for s in load_sources() if s.id == "hosman")
+    assert cfg.options["partial_discovery"] is True and len(cfg.options["list_pages"]) == 25
+    base = "https://www.hosman.co/b/achat-ville-test"
+    cfg = cfg.model_copy(update={"options": {**cfg.options, "list_pages": [base]}})
+    site = FakeSite({base: fixture("hosman_city.html")})
+    conn = build_connector(cfg, make_ctx(site.client(), geo, departments))
+    refs = list(conn.discover())
+    assert [r.source_ref for r in refs] == ["75de31", "887ef3"]  # doublon et lien hors fiche ignorés
+    assert [r.postal_code_hint for r in refs] == ["92000", "92000"]
+
+    raw = conn.parse_detail(fixture("hosman_fiche.html"), refs[0])
+    assert (raw.transaction, raw.property_type, raw.city, raw.postal_code) == ("sale", "Appartement", "Ville-Test", "92000")
+    assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (260000, 41.2, 3, 2)  # « 6 311 € / m² » n'est pas le prix
+    assert raw.image == "https://img.example/h.jpg"
+    with pytest.raises(ListingRemoved):  # bandeau de statut renseigné
+        conn.parse_detail(fixture("hosman_fiche_sold.html"), refs[0])
