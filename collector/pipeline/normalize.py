@@ -15,6 +15,7 @@ from ..textparse import clean_text, parse_bedrooms, parse_energy_class, parse_fe
 TRANSACTION_SYNONYMS = {
     "sale": TransactionType.SALE,
     "vente": TransactionType.SALE,
+    "vendre": TransactionType.SALE,  # « A vendre »
     "achat": TransactionType.SALE,
     "acheter": TransactionType.SALE,
     "sell": TransactionType.SALE,

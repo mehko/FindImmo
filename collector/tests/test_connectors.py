@@ -10,7 +10,7 @@ from collector.connectors.adapters.human import HumanConnector
 from collector.connectors.adapters.laforet import LaforetConnector
 from collector.connectors.feed import FeedConnector
 from collector.connectors.html import HtmlConnector
-from collector.connectors.jsonld import JsonLdConnector, extract_jsonld, raw_from_jsonld
+from collector.connectors.jsonld import JsonLdConnector, extract_jsonld, find_offer, raw_from_jsonld
 from collector.connectors.registry import build_connector
 from collector.connectors.sitemap import iter_sitemap, parse_sitemap
 from collector.http import ListingRemoved
@@ -477,3 +477,78 @@ def test_foncia_adapter_detail_sale_rent_and_inactive(geo, departments):
     with pytest.raises(ListingRemoved):
         conn.parse_detail(fixture("foncia_deleted.html"), ListingRef(source_id="foncia", source_ref="00000001", url=sale_url))
     assert conn.parse_detail("<html></html>", ListingRef(source_id="foncia", source_ref="x", url=sale_url)) is None
+
+
+def _source(source_id, geo, departments):
+    from collector.config import load_sources
+
+    cfg = next(s for s in load_sources() if s.id == source_id)
+    return cfg, build_connector(cfg, make_ctx(FakeSite().client(), geo, departments))
+
+
+def test_asm_json_ld_without_price_is_completed_from_html(geo, departments):
+    cfg, conn = _source("asm-immobilier", geo, departments)
+    url = "https://asm.example/bien/3-pieces-fictif/"
+    ref = ListingRef(source_id=cfg.id, source_ref="3-pieces-fictif", url=url)
+    assert re.search(cfg.options["url_pattern"], url) and not re.search(cfg.options["url_pattern"], "https://asm.example/bien/")
+
+    raw = conn.parse_detail(fixture("asm_active.html"), ref)  # contient une étiquette « Vendu » de fiche SIMILAIRE
+    assert raw is not None
+    # JSON-LD prioritaire : surface, commune et CP DU BIEN (le 92400 de l'agence n'est pas repris par erreur).
+    assert (raw.surface, raw.city, raw.postal_code) == (71.1, "Courbevoie", "92400")
+    # Champs absents du JSON-LD lus dans le HTML, et marqués comme tels.
+    assert (raw.price, raw.rooms, raw.property_type, raw.transaction) == (590000, 3, "Appartement", "A vendre")
+    assert {"price", "rooms", "property_type", "transaction"} <= set(raw.parsed_fields)
+    assert "surface" not in raw.parsed_fields
+
+    rent = conn.parse_detail(fixture("asm_rent.html"), ref)
+    assert (rent.price, rent.transaction) == (1590, "A louer")
+
+    for sold in ("asm_sold_statut.html", "asm_sold_crumb.html"):  # statut du bien OU fil d'Ariane
+        with pytest.raises(ListingRemoved):
+            conn.parse_detail(fixture(sold), ref)
+
+
+def test_find_offer_prefers_richest_real_estate_listing_and_normalizes_a_vendre():
+    from collector.models import TransactionType
+    from collector.pipeline.normalize import TRANSACTION_SYNONYMS, _map
+
+    listing, offer, item = find_offer(extract_jsonld(fixture("asm_active.html")))
+    assert offer is None and item is listing and "floorSize" in item  # fiche détaillée choisie, pas l'enveloppe WebPage
+    assert _map("A vendre", TRANSACTION_SYNONYMS) == TransactionType.SALE
+    assert _map("A louer", TRANSACTION_SYNONYMS) == TransactionType.RENT
+
+
+def test_gridimmo_configuration_sale_and_rent(geo, departments):
+    cfg, conn = _source("gridimmo", geo, departments)
+    url = "https://www.gridimmo.fr/fr/annonces-immobilieres/offre/ville-test/bien/3609/f4-centre-ville.html"
+    m = re.search(cfg.options["url_pattern"], url)
+    assert m and (m["city"], m["ref"]) == ("ville-test", "3609")
+    assert not re.search(cfg.options["url_pattern"], url.replace("/fr/annonces-immobilieres/offre/", "/en/realestate-adverts/offer/"))
+
+    sale = conn.parse_detail(fixture("gridimmo_sale.html"), ListingRef(source_id=cfg.id, source_ref="3609", url=url))
+    assert (sale.transaction, sale.property_type, sale.city) == ("sale", "Appartement", "Ville-Test")
+    assert (sale.price, sale.rooms, sale.bedrooms, sale.surface) == (289000, 4, 3, 77)  # « 289.000 € » = 289 000
+    assert (sale.dpe, sale.ges) == ("D", "C")
+
+    rent = conn.parse_detail(fixture("gridimmo_rent.html"), ListingRef(source_id=cfg.id, source_ref="3033", url=url))
+    assert (rent.transaction, rent.property_type, rent.city, rent.postal_code) == ("rent", "Garage/parking", "La garenne-colombes", "92250")
+    assert (rent.price, rent.surface) == (90, 12)  # « 90 € /mois CC »
+
+
+def test_louzi_paginated_discovery_and_detail(geo, departments):
+    cfg, conn = _source("louzi-immobilier", geo, departments)
+    base = cfg.options["list_pages"][0]
+    site = FakeSite({base: fixture("louzi_list_page1.html"), base + "?page=2": fixture("louzi_list_page2.html"),
+                     base + "?page=3": "<html><body>vide</body></html>"})
+    conn = build_connector(cfg, make_ctx(site.client(), geo, departments))
+    refs = list(conn.discover())
+    assert [r.source_ref for r in refs] == ["2148-700001-1000001", "2148-700002-1000002", "2148-700003-1000003"]  # doublon ignoré
+    assert [r.postal_code_hint for r in refs] == ["92000", "95100", "92000"]
+    assert any(u.endswith("page=3") for u in site.hits) and not any(u.endswith("page=4") for u in site.hits)  # arrêt à la page vide
+
+    url = refs[0].url
+    raw = conn.parse_detail(fixture("louzi_detail.html"), refs[0])
+    assert (raw.transaction, raw.property_type, raw.city, raw.postal_code) == ("sale", "Appartement T2", "Ville-Test", "92000")
+    assert (raw.price, raw.surface, raw.rooms, raw.bedrooms) == (174000, 32, 2, 1)
+    assert raw.description == "Bel appartement F2 très bien agencé." and url.endswith("1000001")

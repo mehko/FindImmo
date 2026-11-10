@@ -71,7 +71,9 @@ sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`
 | **Active** (`html`, sélecteurs seuls) | Les Agents de l'Immobilier (`lesagentsdelimmobilier`) | validée le 2026-11-09 : WordPress/Houzez sans données structurées ; 326 annonces dans le sous-sitemap `property` (les biens vendus sont dans `vendus`, non collectés) ; prix, surface, pièces, chambres, type, commune, CP, transaction extraits, DPE lu dans le texte ; pas de pré-filtrage géographique (URL sans commune) → couverture complète en ~3 collectes |
 | **Actives** (adaptateur `hektor`) | Act'Immo 92 (`act-immo`), Coeuret Immobilier (`coeuretimmobilier`) | validées le 2026-11-09 : Hektor/LBI sans données structurées, un jeu de sélecteurs par thème ; commune dans l'URL → pré-filtrage sans requête. Sur Act'Immo le prix du bandeau est souvent vide : il est reconstitué depuis le prix net vendeur et le taux d'honoraires acquéreur (vérifié : 280 000 € × 1,0536 = 295 008 € pour 295 000 € affichés), arrondi à 100 € et marqué « parsed » ; sans taux lisible, le prix reste inconnu |
 | **Active** (`sitemap_jsonld`, plateforme Netty) | Immodurand (`immodurand`) | validée le 2026-11-09 : `Product` dont le bien est dans `offers.itemOffered` ; code postal dans l'URL ; biens vendus (`price: 0`) retirés via `removed_if_no_price` ; parkings/garages (majorité des ~100 URL) écartés par le pipeline ; pages lourdes (~800 Ko) → collecte lente |
-| HTML sans JSON-LD, moteur inconnu ou peu d'annonces dans le sitemap | ASM, Agence Centrale, Cabinet Vincent, GIC, Gridimmo, HF Conseil, I3G, Imax, Intérieur et Jardin, Louzi, MonEden, Montquartier, KLH Conseil, Your New Home, Massiet | sélecteurs à définir au cas par cas |
+| **Actives** (`html` / `sitemap_jsonld`, configuration seule) | Gridimmo (`gridimmo`), Louzi (`louzi-immobilier`), ASM (`asm-immobilier`) | validées le 2026-11-10 (voir ci-dessous) |
+| Non retenus (sites indépendants évalués le 2026-11-10) | Agence Centrale, I3G (WordPress : articles, 1 annonce / biens anciens), HF Conseil (page unique, 2-3 biens), Massiet (Wix, services), GIC (WordPress « coming soon »), KLH Conseil (blog), Your New Home (pages de recherche par ville), Montquartier (page d'accueil vide) | pas d'annonces exploitables ou volume négligeable |
+| Protégés par AWS WAF (défi JavaScript) | Cabinet Vincent, Imax, Intérieur et Jardin, MonEden | non contournés ; leur « 202 » du premier contrôle était la page de défi |
 | Déjà enregistrées | Laforêt (active), iad (en attente) | — |
 | Interdites par robots.txt | House Immobilier (drhouse-immo.com) | exclue |
 | Bloquées (403) | Capifrance, Efficity, Keymex, Stéphane Plaza | exclues (non contournées) |
@@ -79,3 +81,24 @@ sur les 31 sites joignables. Résultats dans `config/sources.candidates.yaml` (`
 
 Pour ERA et HUMAN, dont les sitemaps étaient inexploitables, la découverte passe par les pages de résultats
 (voir les adaptateurs `era` et `human`).
+
+### Sites indépendants activés le 2026-11-10
+
+* **Gridimmo** : sitemap en FR et EN pour chaque annonce (seule la version FR est retenue) ; HTML maison, sélecteurs par libellés ;
+  vente et location (« /mois » → location) ; commune dans l'URL ; 40 annonces, toutes extraites.
+* **Louzi** : annonces absentes du sitemap ; découverte par la liste complète paginée `/biens-immobiliers/tous/tous?page=N` (option
+  générique `list_page_param`, arrêt à la première page sans nouveauté) ; code postal dans l'URL ; 38 annonces, toutes extraites.
+* **ASM** (WordPress + Houzez) : le JSON-LD donne surface et adresse **du bien** (le code postal visible dans le texte est celui de
+  l'agence) mais pas le prix, lu dans le HTML (option générique `supplement_fields`). Environ la moitié des ~500 pages `/bien/` sont
+  vendues ou louées, en un bloc continu au milieu du sitemap (~220 biens actifs) : retirées d'après le « Statut de propriété » ou le fil d'Ariane (option `removed_if`). **Piège** : les étiquettes
+  « Vendu » / « Déjà loué » de la page appartiennent aux fiches similaires, pas au bien ; un premier diagnostic fondé sur elles avait
+  conclu à tort que 85 % des biens étaient vendus.
+* Même thème Houzez ≠ mêmes sélecteurs : ASM et Les Agents de l'Immobilier ont des gabarits Elementor différents (libellés et
+  structure du `<li>`), donc une configuration par site.
+
+### Hosman (hosman.co) — non activé
+
+Agence en ligne nationale. `robots.txt` autorise les pages publiques mais interdit `/api/`. Les fiches (`/a/…`) ne sont pas dans le
+sitemap ; les pages de ville `/b/achat-<ville>` n'affichent que **9 fiches** (carrousel plafonné, identique pour les 25 communes du 92 testées :
+62 fiches uniques). La liste complète est chargée par JavaScript depuis `/api/v1/properties`, route interdite : la collecter reviendrait à
+contourner `robots.txt`. Une découverte plafonnée ne peut pas servir de base à la détection des annonces retirées.

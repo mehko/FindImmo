@@ -114,21 +114,25 @@ def find_offer(objects: Iterable[dict[str, Any]]) -> tuple[dict[str, Any] | None
             return index.get(value["@id"], value)
         return value
 
-    for obj in objects:
-        types = _types(obj)
-        if "realestatelisting" in types:
-            offer = deref(obj.get("mainEntity") or obj.get("offers") or obj.get("about"))
-            if isinstance(offer, dict):
-                if "itemOffered" in offer:
-                    item = deref(offer.get("itemOffered"))
-                else:
-                    item = offer
-                    # Variante (plateformes Apimo) : le bien est dans « about », l'offre dans « offers ».
-                    about = deref(obj.get("about"))
-                    if offer is not about and isinstance(about, dict) and "offer" in _types(offer):
-                        item = about
-                return obj, offer, item if isinstance(item, dict) else None
-            return obj, None, None
+    def listing_score(obj: dict[str, Any]) -> int:
+        # Plusieurs RealEstateListing peuvent coexister (enveloppe WebPage + fiche détaillée) : on prend la plus riche.
+        return 3 if any(k in obj for k in ("mainEntity", "offers", "about")) else 2 if any(k in obj for k in ("address", "floorSize")) else 1
+
+    listings = sorted((o for o in objects if "realestatelisting" in _types(o)), key=listing_score, reverse=True)
+    for obj in listings[:1]:
+        offer = deref(obj.get("mainEntity") or obj.get("offers") or obj.get("about"))
+        if isinstance(offer, dict):
+            if "itemOffered" in offer:
+                item = deref(offer.get("itemOffered"))
+            else:
+                item = offer
+                # Variante (plateformes Apimo) : le bien est dans « about », l'offre dans « offers ».
+                about = deref(obj.get("about"))
+                if offer is not about and isinstance(about, dict) and "offer" in _types(offer):
+                    item = about
+            return obj, offer, item if isinstance(item, dict) else None
+        # Fiche sans offre (prix absent du JSON-LD) mais décrivant le bien elle-même (surface, adresse…).
+        return (obj, None, obj) if listing_score(obj) == 2 else (obj, None, None)
     for obj in objects:
         types = _types(obj)
         if "offer" in types and isinstance(deref(obj.get("itemOffered")), dict):
@@ -238,6 +242,17 @@ class JsonLdConnector(SitemapConnector):
             raw = self._fallback(html, ref)
         if raw is None:
             return None
+        soup = None
+        if self.options.get("removed_if") or self.options.get("supplement_fields"):
+            from .html import extract_fields, raise_if_removed  # import local : évite un cycle jsonld ↔ html
+
+            soup = BeautifulSoup(html, "lxml")
+            raise_if_removed(soup, self.options.get("removed_if"), ref.url)
+            # Champs que le JSON-LD ne donne pas (ex. prix) lus dans le HTML ; le JSON-LD reste prioritaire.
+            for field, value in extract_fields(soup, self.options.get("supplement_fields") or {}).items():
+                if field in RawListing.model_fields and getattr(raw, field, None) in (None, "", {}):
+                    setattr(raw, field, value)
+                    raw.parsed_fields = [*raw.parsed_fields, field]
         # Mention « vendu » dans le titre/la description (option ``removed_markers``, regex).
         markers = self.options.get("removed_markers") or []
         texts = (raw.title or "", raw.description or "")
