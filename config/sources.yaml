@@ -5,6 +5,9 @@
 # Seules les sources `enabled: true` sont collectées. robots.txt est toujours respecté.
 # Évaluations du 2026-11-08 (voir docs/SOURCES.md pour le détail).
 #
+# Option `min_interval_hours: N` (dans `options`) : écart minimal entre deux tentatives sur une source lourde ou sensible ; une
+# source ignorée n'a pas de lot et ses annonces ne changent pas de statut.
+#
 # Option `partial_discovery: true` (dans `options`) : la source ne peut pas énumérer toutes ses annonces. Une absence ne retire
 # jamais une annonce ; les annonces connues mais non redécouvertes sont revérifiées par leur page (voir docs/SOURCES.md, Hosman).
 
@@ -567,6 +570,35 @@ sources:
     notes: >
       Vente uniquement (la location est de la gestion). Source en découverte partielle : une absence ne retire jamais une
       annonce ; seules une page supprimée/redirigée ou le bandeau « vendu » le font. DPE non exposé.
+
+  - id: figaro-immobilier
+    name: Le Figaro Immobilier (Colombes)
+    domain: immobilier.lefigaro.fr
+    url: https://immobilier.lefigaro.fr
+    network: Figaro Classifieds
+    cms: Nuxt (SSR) — liste complète des annonces dans __NUXT_DATA__
+    method: adapter
+    adapter: figaro
+    # ⚠ SOUS AUTORISATION ÉCRITE : les CGU (art. 6) interdisent toute collecte automatisée sans accord préalable de
+    # Figaro Classifieds. Source activée d'après l'accord obtenu par le propriétaire du projet ; en respecter les termes
+    # (périmètre, fréquence, publication) et désactiver ou réduire cette source s'ils changent. Voir docs/SOURCES.md.
+    enabled: true
+    compatibility: compatible
+    departments: ["92"]
+    rate_limit_seconds: 3
+    refresh_days: 3
+    options:
+      # Une lecture complète (~28 pages de ~1,9 Mo pour la vente à Colombes) au plus toutes les 24 h, malgré les collectes de 3 h.
+      min_interval_hours: 24
+      list_pages:
+        - https://immobilier.lefigaro.fr/annonces/immobilier-vente-bien-colombes+92700.html
+        - https://immobilier.lefigaro.fr/annonces/immobilier-location-bien-colombes+92700.html
+      max_pages: 40
+    notes: >
+      Annonces complètes lues dans le bloc Nuxt des pages de liste (aucune fiche téléchargée). Pagination arrêtée au
+      totalPage de la 1re page (au-delà, le site renvoie une liste générique). Éléments sponsorisés dédoublonnés. Portail :
+      beaucoup d'annonces doublonnent celles d'agences déjà collectées (fusion par le dédoublonnage). GPS ignoré (2 décimales,
+      niveau commune). Pour étendre le périmètre, ajouter d'autres communes à list_pages en tenant compte du poids des pages.
 
   # Démonstration : les sources fictives « demo » et « demo-bis » sont définies dans collector/demo.py
   # (commande `python -m collector demo`) et ne sont jamais collectées en production.

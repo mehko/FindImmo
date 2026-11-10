@@ -4,6 +4,7 @@ import re
 import pytest
 
 from collector.connectors.adapters.era import EraConnector
+from collector.connectors.adapters.figaro import FigaroConnector
 from collector.connectors.adapters.foncia import FonciaConnector
 from collector.connectors.adapters.hektor import HektorConnector
 from collector.connectors.adapters.human import HumanConnector
@@ -573,3 +574,107 @@ def test_hosman_configuration_discovery_detail_and_sold_banner(geo, departments)
     assert raw.image == "https://img.example/h.jpg"
     with pytest.raises(ListingRemoved):  # bandeau de statut renseigné
         conn.parse_detail(fixture("hosman_fiche_sold.html"), refs[0])
+
+
+def _devalue(obj):
+    """Encode un objet au format « devalue » de Nuxt (tableau dont les objets pointent par indice)."""
+    arr: list = [None]
+
+    def add(value):
+        arr.append(None)
+        i = len(arr) - 1
+        if isinstance(value, dict):
+            arr[i] = {k: add(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            arr[i] = [add(v) for v in value]
+        else:
+            arr[i] = value
+        return i
+
+    arr[0] = ["ShallowReactive", add(obj)]
+    return arr
+
+
+def _figaro_page(items, current, total):
+    payload = {"data": {"classifiedsListResponse": {"classifieds": items, "total": 3,
+                                                    "pagination": {"currentPage": current, "totalPage": total}}}}
+    return ('<!doctype html><html><body><script type="application/json" id="__NUXT_DATA__" data-ssr="true">'
+            f"{json.dumps(_devalue(payload))}</script></body></html>")
+
+
+def _figaro_item(i, **kw):
+    item = {"id": str(i), "recordLink": f"https://fi.example/annonces/annonce-{i}.html", "type": "appartement neuf",
+            "transaction": "vente", "price": 290350, "area": 62, "roomCount": [3], "roomCountLabel": "3 pièces", "bedRoomCount": 2,
+            "location": {"city": "Ville-Test (92)", "postalCode": "92000", "latitude": 48.9, "longitude": 2.2},
+            "dpe": {"energyCategory": "B", "gesCategory": ""}, "options": ["terrasse", "petit_prix", "parking"],
+            "client": {"brandName": "AGENCE FICTIVE", "name": "Fictive"}, "description": "Bel  appartement.\n Lumineux.",
+            "images": {"photos": [{"order": 1, "url": {"medium": "https://img.example/p.jpg"}}]},
+            "firstPublicationDate": "2026-11-09T20:01:12"}
+    item.update(kw)
+    return item
+
+
+def test_figaro_decoder_and_unexpected_structure():
+    from collector.connectors.adapters.figaro import decode_nuxt, parse_list
+
+    assert decode_nuxt(json.dumps(_devalue({"a": [1, {"b": "x"}], "c": None}))) == {"a": [1, {"b": "x"}], "c": None}
+    items, current, total = parse_list(_figaro_page([_figaro_item(1)], 1, 3))
+    assert [i["id"] for i in items] == ["1"] and (current, total) == (1, 3)
+    assert parse_list("<html><body>maintenance</body></html>") is None
+
+
+def test_figaro_discovery_stops_at_first_page_total_and_dedupes(geo, departments):
+    base = "https://fi.example/annonces/immobilier-vente-bien-ville-test+92000.html"
+    site = FakeSite({
+        base: _figaro_page([_figaro_item(1), _figaro_item(2), _figaro_item(2)], 1, 2),  # doublon dans la page
+        base + "?page=2": _figaro_page([_figaro_item(1), _figaro_item(3, location={"city": "Autre (78)", "postalCode": "78000"})], 2, 2),
+        # Au-delà de la dernière page, le site renvoie une liste générique annonçant 100 pages : ne doit JAMAIS être lue.
+        base + "?page=3": _figaro_page([_figaro_item(99)], 3, 100),
+    })
+    src = make_source(id="figaro", method="adapter", adapter="figaro", domain="fi.example", url="https://fi.example",
+                      options={"list_pages": [base], "max_pages": 40})
+    conn = build_connector(src, make_ctx(site.client(), geo, {"92"}))
+    assert isinstance(conn, FigaroConnector)
+    refs = list(conn.discover())
+    assert [r.source_ref for r in refs] == ["1", "2", "3"]  # 1 sponsorisée répétée, 2 en double : une seule fois
+    assert not any(u.endswith("page=3") for u in site.hits)
+    assert [conn.ref_in_scope(r) for r in refs] == [True, True, False]  # CP 78000 : hors zone
+    assert conn.fetch_detail(refs[0]) is refs[0].raw  # annonce complète : aucune fiche téléchargée
+
+    broken = FakeSite({base: "<html><body>maintenance</body></html>"})
+    conn2 = build_connector(src, make_ctx(broken.client(), geo, {"92"}))
+    with pytest.raises(ValueError):
+        list(conn2.discover())  # structure inattendue : la découverte ne doit pas passer pour exhaustive
+
+
+def test_figaro_item_mapping():
+    from collector.connectors.adapters.figaro import raw_from_item
+
+    raw = raw_from_item(_figaro_item(1), "figaro")
+    assert (raw.transaction, raw.property_type, raw.price, raw.surface, raw.rooms, raw.bedrooms) == ("vente", "appartement neuf", 290350, 62, 3, 2)
+    assert (raw.city, raw.postal_code, raw.dpe, raw.ges, raw.agency) == ("Ville-Test", "92000", "B", None, "AGENCE FICTIVE")
+    assert raw.features == {"terrace": True, "parking": True}  # « petit_prix » n'est pas un équipement
+    assert raw.title == "appartement neuf 3 pièces 62 m² - Ville-Test" and raw.description == "Bel appartement. Lumineux."
+    assert raw.image == "https://img.example/p.jpg" and raw.published_at == "2026-11-09" and raw.latitude is None
+
+    pro = raw_from_item(_figaro_item(2, type="locaux professionnels", area=0, price=None, roomCount=[0]), "figaro")
+    assert (pro.property_type, pro.surface, pro.price, pro.rooms) == ("commercial", None, None, None)
+    assert pro.title == "locaux professionnels 3 pièces - Ville-Test"  # pas de « 0 m² »
+    assert raw_from_item({"id": "9"}, "figaro") is None  # sans lien de fiche : ignorée
+
+
+def test_min_interval_hours_skips_recently_attempted_sources(tmp_path):
+    from collector.collect import _due
+    from collector.pipeline.state import State
+    from collector.pipeline.tracker import now_iso
+
+    state = State(tmp_path)
+    heavy = make_source(id="lourde", options={"min_interval_hours": 24})
+    plain = make_source(id="normale")
+    assert _due(heavy, state) and _due(plain, state)  # jamais tentée
+    state.source_state("lourde").last_attempt_at = now_iso()
+    state.source_state("normale").last_attempt_at = now_iso()
+    assert not _due(heavy, state)  # tentée il y a moins de 24 h
+    assert _due(plain, state)  # sans l'option : toujours collectée
+    state.source_state("lourde").last_attempt_at = "2026-01-01T00:00:00Z"
+    assert _due(heavy, state)  # intervalle écoulé
