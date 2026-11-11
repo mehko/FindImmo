@@ -115,6 +115,8 @@ JavaScript depuis `/api/v1/properties`, route interdite : elle n'est **pas** uti
 
 ### Le Figaro Immobilier (immobilier.lefigaro.fr) — intégration complète du 92, sous accord écrit (2026-11-11)
 
+> **Statut : désactivé (2026-11-11).** Premier run réel sur GitHub Actions : `bloqué : protection anti-bot ou accès refusé (403)` sur la première page de liste (`robots.txt` lisible et autorisant la page ; c'est le pare-feu de Figaro qui refuse les IP des runners). Aucun contournement (rejeu de requêtes, autre IP, intermédiaire) : contraire à l'accord. Pour réactiver : obtenir de Figaro l'autorisation du robot (liste blanche du User-Agent ou d'une IP fixe, éventuellement une API/un flux), ajouter le contact dans le User-Agent, puis passer les 4 lots à `enabled: true`, `compatibility: compatible`.
+
 Portail d'annonces de Figaro Classifieds. Ses conditions d'utilisation (art. 6) interdisent toute collecte automatisée sans accord écrit
 préalable ; `robots.txt` autorise les pages de liste (`/annonces/…`, pagination `?page=N`) mais interdit `/api/`, `/recherche/` et les
 URL à paramètres (jamais utilisés). Le propriétaire du projet a fourni l'« Accord de licence et d'accès aux données » Figaro Classifieds ×
