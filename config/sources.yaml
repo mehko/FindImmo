@@ -383,8 +383,8 @@ sources:
     cms: Angular (SSR) — fiche annonce complète dans serverApp-state
     method: adapter
     adapter: foncia
-    enabled: true
-    compatibility: compatible
+    enabled: false   # robots.txt répond 403 depuis les runners GitHub (WAF) : collecte impossible sans contournement
+    compatibility: blocked
     departments: ["92"]   # réseau national : élargir progressivement (4 579 annonces dans tous les départements configurés)
     rate_limit_seconds: 1.5
     max_details_per_run: 250
