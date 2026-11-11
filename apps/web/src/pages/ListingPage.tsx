@@ -80,6 +80,7 @@ export function ListingPage() {
 
   const group = (l.property_id ? byProperty.get(l.property_id) : undefined) ?? [l];
   const sourceName = (sid: string) => sources.find((s) => s.id === sid)?.name ?? sid;
+  const attribution = (sid: string) => sources.find((s) => s.id === sid)?.attribution ?? null;
   const features = Object.entries(l.features ?? {}) as [FeatureKey, boolean][];
   const approxGeo = l.provenance?.latitude === "estimated";
   const surfaceReliable = l.surface != null && l.surface >= 9;
@@ -206,6 +207,9 @@ export function ListingPage() {
                 <div className="min-w-0">
                   <p className="truncate font-medium">{g.agency ?? sourceName(g.source_id)}</p>
                   <p className="text-xs text-muted-foreground">détectée le {formatDate(g.first_seen_at)}</p>
+                  {attribution(g.source_id) && (
+                    <a className="text-xs text-primary" href={g.url} target="_blank" rel="noopener noreferrer">{attribution(g.source_id)}</a>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="font-semibold tabular-nums">{formatPrice(g.price, g.transaction)}</p>

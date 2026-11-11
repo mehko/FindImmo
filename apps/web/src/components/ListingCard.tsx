@@ -28,7 +28,8 @@ function dropInfo(l: Listing): string | null {
 
 export const ListingCard = memo(function ListingCard({ listing: l, match, favorite, sources = 1, onFavorite }: { listing: Listing; match?: MatchResult; favorite: boolean; sources?: number; onFavorite: (l: Listing) => void }) {
   const { sources: sourceList } = useCatalog();
-  const sourceName = sourceList.find((s) => s.id === l.source_id)?.name ?? l.source_id;
+  const source = sourceList.find((s) => s.id === l.source_id);
+  const sourceName = source?.name ?? l.source_id;
   const isNew = Date.now() - Date.parse(l.first_seen_at) < NEW_MS;
   const drop = dropInfo(l);
   const feats = (Object.entries(l.features ?? {}) as [FeatureKey, boolean][]).filter(([, v]) => v).slice(0, 3);
@@ -99,6 +100,7 @@ export const ListingCard = memo(function ListingCard({ listing: l, match, favori
       <div className="flex items-center justify-between border-t px-4 py-2">
         <span className="truncate text-xs text-muted-foreground">
           {l.agency ?? sourceName}
+          {source?.attribution && <> · {source.attribution}</>}
           {match && match.unknowns.length > 0 && <span className="ml-1 text-warning">· {match.unknowns.length} critère(s) à vérifier</span>}
         </span>
         <button onClick={() => onFavorite(l)} aria-pressed={favorite} aria-label={favorite ? "Retirer des favoris" : "Ajouter aux favoris"} className="-mr-2 grid size-10 place-items-center rounded-full hover:bg-muted">

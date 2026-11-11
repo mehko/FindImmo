@@ -219,3 +219,39 @@ def test_complete_discovery_is_unchanged_without_the_option(tmp_path, geo, depar
     site.set(f"{BASE}/sitemap.xml", sitemap(refs[:1]))
     hits = site.hits[m2]
     assert cycle("2026-11-02T00:00:00Z")["unavailable"] == 1 and site.hits[m2] == hits  # pas de revérification
+
+
+def test_hide_unavailable_and_attribution_are_published(tmp_path, geo, departments, settings):
+    """Source sous accord : mention de source publiée ; une annonce retirée de la source disparaît de l'affichage."""
+    m1, m2 = f"{BASE}/annonces/vente/maison/meaux-77100/M1", f"{BASE}/annonces/vente/maison/toulon-83000/M2"
+    refs = [("M1", "meaux", "77100"), ("M2", "toulon", "83000")]
+    site = FakeSite({f"{BASE}/robots.txt": "", f"{BASE}/sitemap.xml": sitemap(refs),
+                     m1: page("M1", 250000, "Meaux", "77100"), m2: page("M2", 320000, "Toulon", "83000")})
+    src = make_source(options={"sitemaps": [f"{BASE}/sitemap.xml"], "url_pattern": PATTERN}, max_details_per_run=10,
+                      refresh_days=30, attribution="Source : Test Immo", hide_unavailable=True)
+    plain = make_source(id="libre", domain="libre.example", url="https://libre.example",
+                        options={"sitemaps": ["https://libre.example/sitemap.xml"], "url_pattern": PATTERN})
+    state_dir, raw_dir, public = tmp_path / "state", tmp_path / "raw", tmp_path / "public"
+
+    def cycle(now: str):
+        run_collect([src], geo, departments, State.load(state_dir), settings, raw_dir, client=site.client())
+        return run_process(raw_dir, state_dir, public, [src, plain], load_departments(), geo, settings, now=now)
+
+    def published(code: str):
+        manifest = Manifest.model_validate_json((public / "manifest.json").read_text())
+        path = next(d for d in manifest.departments if d.code == code).path
+        return DepartmentFile.model_validate_json((public / path).read_text()).listings
+
+    cycle("2026-11-01T00:00:00Z")
+    sources = json.loads((public / json.loads((public / "manifest.json").read_text())["files"]["sources"]["path"]).read_text())["sources"]
+    by_id = {s["id"]: s for s in sources}
+    assert by_id[src.id]["attribution"] == "Source : Test Immo" and by_id["libre"]["attribution"] is None
+    assert [x.status for x in published("83")] == ["active"]
+
+    site.set(f"{BASE}/sitemap.xml", sitemap(refs[:1]))  # M2 sort du sitemap → indisponible
+    assert cycle("2026-11-02T00:00:00Z")["unavailable"] == 1
+    assert published("83") == [] and len(published("77")) == 1  # M2 masquée, M1 toujours affichée
+
+    src.hide_unavailable = False  # sans l'option, l'annonce non confirmée reste affichée avec son statut
+    cycle("2026-11-03T00:00:00Z")
+    assert [x.status for x in published("83")] == ["unavailable_unconfirmed"]

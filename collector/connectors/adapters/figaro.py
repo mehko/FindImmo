@@ -23,6 +23,7 @@ Options : ``list_pages`` (URL de liste), ``max_pages`` (garde-fou, défaut 60).
 from __future__ import annotations
 
 import json
+import logging
 import re
 from collections.abc import Iterator
 from typing import Any
@@ -143,6 +144,19 @@ def raw_from_item(item: dict[str, Any], source_id: str) -> RawListing | None:
 class FigaroConnector(BaseConnector):
     method = "adapter:figaro"
 
+    @staticmethod
+    def _is_genuine_list(base: str, items: list[dict[str, Any]]) -> bool:
+        """Une commune sans annonce du type demandé (ex. aucune location) reçoit une liste **générique** de milliers de
+        résultats d'autres communes : on la reconnaît à la part d'annonces dont le code postal est celui de l'URL."""
+        expected = re.search(r"\+(\d{5})\.html$", base.split("?")[0])
+        if not expected or not items:
+            return True
+        share = sum(1 for i in items if (i.get("location") or {}).get("postalCode") == expected[1]) / len(items)
+        if share < 0.5:
+            logging.getLogger(__name__).warning("liste générique ignorée (commune sans annonce de ce type) : %s", base)
+            return False
+        return True
+
     def discover(self) -> Iterator[ListingRef]:
         max_pages = int(self.options.get("max_pages", 60))
         seen: set[str] = set()
@@ -156,6 +170,8 @@ class FigaroConnector(BaseConnector):
                 items, current, page_total = parsed
                 if page == 1:
                     total = page_total  # seul le total de la 1re page fait foi (la page « 29 » annonce 100 pages)
+                    if not self._is_genuine_list(base, items):
+                        break
                 elif current != page:
                     break
                 for item in items:

@@ -113,25 +113,42 @@ JavaScript depuis `/api/v1/properties`, route interdite : elle n'est **pas** uti
   ligne sans ce mot, elles resteront actives jusqu'à suppression de la page. À surveiller au premier cas réel.
 * Vente uniquement ; DPE non exposé.
 
-### Le Figaro Immobilier (immobilier.lefigaro.fr) — activé sous autorisation écrite (2026-11-10)
+### Le Figaro Immobilier (immobilier.lefigaro.fr) — intégration complète du 92, sous accord écrit (2026-11-11)
 
-Portail d'annonces de Figaro Classifieds. **Les conditions d'utilisation (art. 6) interdisent** toute extraction ou collecte
-automatisée du contenu et des bases de données sans autorisation écrite préalable ; `robots.txt` autorise pourtant les pages de liste
-(`/annonces/…`, pagination `?page=N`) mais interdit `/api/`, `/recherche/` et les URL à paramètres. La source n'a donc été activée qu'après
-l'**accord écrit de Figaro Classifieds, obtenu par le propriétaire du projet**.
+Portail d'annonces de Figaro Classifieds. Ses conditions d'utilisation (art. 6) interdisent toute collecte automatisée sans accord écrit
+préalable ; `robots.txt` autorise les pages de liste (`/annonces/…`, pagination `?page=N`) mais interdit `/api/`, `/recherche/` et les
+URL à paramètres (jamais utilisés). Le propriétaire du projet a fourni l'« Accord de licence et d'accès aux données » Figaro Classifieds ×
+FindImmo (copie non conservée dans le dépôt). **Dans la copie remise au 2026-11-11, les annexes (zones, rubriques, publication, débit,
+plages horaires, conditions économiques) et l'identité des parties sont encore en blanc** : le périmètre ci-dessous est donc celui choisi
+par le propriétaire (« intégrer complètement Figaro Immobilier »), à rapprocher des annexes dès qu'elles seront remplies.
 
-> **À consigner par le propriétaire (non connus du dépôt)** : date de l'accord, périmètre (communes/départements), fréquence maximale,
-> et surtout ce qui concerne la **publication** des données dans la PWA. Si l'accord est plus restrictif que la configuration actuelle,
-> réduire `list_pages` / `min_interval_hours`, ou ajuster `publish` (`image`, `description_chars`) sur la source, voire la désactiver.
+**Obligations lisibles dans le texte de l'accord, mises en œuvre dans le code**
 
-* **Méthode** : listes par commune (`immobilier-vente-bien-<commune>+<cp>.html`, `…-location-…`). Le site est une application Nuxt : chaque
-  page embarque dans `__NUXT_DATA__` (format « devalue ») la réponse de sa liste avec les annonces **complètes** (prix, surface, pièces,
-  DPE, agence, photos) : aucune fiche n'est téléchargée. Les sitemaps de fiches (~600 000, sans localisation) ne sont pas utilisés.
-* **Piège** : au-delà de la dernière page, le site renvoie une liste générique (`totalPage` passe à 100). L'adaptateur s'arrête strictement
-  au total annoncé par la **première** page. Les éléments sponsorisés se répètent d'une page à l'autre : dédoublonnage par identifiant.
-* **Charge** : ~1,9 Mo par page décompressée. Colombes seule : 850 annonces (vente), soit 28 pages ; 707 annonces distinctes en mesure
-  réelle (vente et location, 127 agences) en 1 min 35. Les collectes tournent toutes les 3 h : l'option générique **`min_interval_hours`**
-  (24 h ici) évite de relire ces pages à chaque exécution. Une source ignorée n'a pas de lot : ses annonces ne changent pas de statut.
+| Clause | Mise en œuvre |
+|---|---|
+| § 4 — mention « Source : Figaro Immobilier » + lien cliquable vers l'annonce d'origine | `attribution` de la source, publiée dans `sources.json` ; affichée sur chaque carte et, avec lien vers l'annonce d'origine, dans la section « Sources » de la fiche |
+| § 6 — annonce retirée de la source : retirée de l'affichage sous 48 h | `hide_unavailable: true` : une annonce qui n'est plus `active` n'est plus publiée ; une lecture par jour → retrait sous ~24 h |
+| § 5 — débit, cadence, plages horaires, pas de contournement | 1 requête / 3 s ; 1 lecture par jour et par lot (`min_interval_hours: 20`) ; plages nocturnes (`run_hours_utc`) ; aucun contournement |
+| § 7 — pas de revente / API / export massif à des tiers, pas d'entraînement d'IA | aucun accès à l'API du site ; les données ne sont pas revendues. ⚠ Les fichiers JSON publiés par FindImmo étant publics, à confronter à l'annexe « Publication publique » |
+| § 5 / annexe 2 — robot identifié avec un contact | User-Agent actuel `FindImmoBot/0.1 (+https://github.com/mehko/FindImmo; usage personnel)` : le contact (e-mail) est à ajouter par le propriétaire |
+| § 8 — pas de données personnelles | aucun champ personnel collecté (ni noms, ni téléphone des agents) |
+
+**Périmètre : tous les Hauts-de-Seine, vente et location.** 36 communes en vente (16 083 annonces, 538 pages) et 35 en location
+(1 642 annonces, 69 pages) : **607 pages de ~1,9 Mo** par lecture complète. La page du département plafonne à 100 pages (3 100 annonces) :
+seules les pages communales (`immobilier-<vente|location>-bien-<commune>+<cp>.html`) sont exhaustives. Pour ne pas dépasser le
+débit poli ni la limite de 30 minutes d'un job, le travail est réparti en **4 lots de ~152 pages** (`figaro-immobilier`, `-2`, `-3`, `-4`),
+chacun lu une fois par jour dans sa propre plage de 3 h UTC (0-2 h, 3-5 h, 6-8 h, 9-11 h). Colombes reste dans le lot 1
+(identifiant historique, pour conserver ses annonces).
+
+* **Méthode** : le site est une application Nuxt ; chaque page embarque dans `__NUXT_DATA__` (format « devalue ») sa liste avec les annonces
+  **complètes** (prix, surface, pièces, DPE, agence, photos) : aucune fiche n'est téléchargée. Les sitemaps de fiches (~600 000, sans
+  localisation) ne sont pas utilisés.
+* **Pièges** : (1) au-delà de la dernière page annoncée, le site renvoie une liste générique (`totalPage` passe à 100) : lecture arrêtée au
+  total de la 1re page ; (2) une commune **sans** annonce d'un type (ex. aucune location à Marnes-la-Coquette) reçoit une liste générique de
+  milliers de résultats d'autres communes : reconnue à la part de codes postaux différents de celui de l'URL (< 50 %) et ignorée ;
+  (3) les annonces sponsorisées se répètent d'une page à l'autre : dédoublonnage par identifiant.
+* **Calendrier** : options génériques `run_hours_utc` (plage d'heures UTC) et `min_interval_hours` ; une source ignorée n'a pas de lot et ses
+  annonces ne changent pas de statut ; une exécution explicite (`--sources`) ignore le calendrier.
 * **Doublons** : un portail reprend les annonces d'agences déjà collectées en direct ; le dédoublonnage du pipeline les fusionne.
-* GPS ignoré (2 décimales : niveau commune). Pour étendre le périmètre, ajouter des communes à `list_pages` en tenant compte du poids.
-
+* GPS ignoré (2 décimales : niveau commune). Étendre à d'autres départements = ajouter leurs pages communales en lots, en tenant
+  compte du poids (Paris ou la Seine-et-Marne représenteraient chacun plusieurs centaines de pages).
