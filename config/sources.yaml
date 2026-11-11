@@ -583,8 +583,8 @@ sources:
     adapter: figaro
     # ⚠ SOUS ACCORD ÉCRIT avec Figaro Classifieds (voir docs/SOURCES.md) : en respecter les termes et désactiver ou réduire
     # cette source s'ils changent. Le Hauts-de-Seine est réparti en 4 lots (communes) lus à des heures différentes de la nuit.
-    enabled: true
-    compatibility: compatible
+    enabled: false   # 403 anti-bot depuis les runners GitHub (2026-11-11) : en attente de l'autorisation de Figaro
+    compatibility: blocked
     departments: ["92"]
     rate_limit_seconds: 3
     max_run_seconds: 2400
@@ -631,8 +631,8 @@ sources:
     adapter: figaro
     # ⚠ SOUS ACCORD ÉCRIT avec Figaro Classifieds (voir docs/SOURCES.md) : en respecter les termes et désactiver ou réduire
     # cette source s'ils changent. Le Hauts-de-Seine est réparti en 4 lots (communes) lus à des heures différentes de la nuit.
-    enabled: true
-    compatibility: compatible
+    enabled: false   # 403 anti-bot depuis les runners GitHub (2026-11-11) : en attente de l'autorisation de Figaro
+    compatibility: blocked
     departments: ["92"]
     rate_limit_seconds: 3
     max_run_seconds: 2400
@@ -679,8 +679,8 @@ sources:
     adapter: figaro
     # ⚠ SOUS ACCORD ÉCRIT avec Figaro Classifieds (voir docs/SOURCES.md) : en respecter les termes et désactiver ou réduire
     # cette source s'ils changent. Le Hauts-de-Seine est réparti en 4 lots (communes) lus à des heures différentes de la nuit.
-    enabled: true
-    compatibility: compatible
+    enabled: false   # 403 anti-bot depuis les runners GitHub (2026-11-11) : en attente de l'autorisation de Figaro
+    compatibility: blocked
     departments: ["92"]
     rate_limit_seconds: 3
     max_run_seconds: 2400
@@ -727,8 +727,8 @@ sources:
     adapter: figaro
     # ⚠ SOUS ACCORD ÉCRIT avec Figaro Classifieds (voir docs/SOURCES.md) : en respecter les termes et désactiver ou réduire
     # cette source s'ils changent. Le Hauts-de-Seine est réparti en 4 lots (communes) lus à des heures différentes de la nuit.
-    enabled: true
-    compatibility: compatible
+    enabled: false   # 403 anti-bot depuis les runners GitHub (2026-11-11) : en attente de l'autorisation de Figaro
+    compatibility: blocked
     departments: ["92"]
     rate_limit_seconds: 3
     max_run_seconds: 2400
