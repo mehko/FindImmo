@@ -31,7 +31,13 @@ def _filter_sources(args: argparse.Namespace):
         unknown = wanted - {s.id for s in sources}
         if unknown:
             sys.exit(f"Sources inconnues : {', '.join(sorted(unknown))}")
-        sources = [s.model_copy(update={"enabled": True}) if s.id in wanted else s.model_copy(update={"enabled": False}) for s in sources]
+        # Une exécution explicite ignore le calendrier des sources (plage horaire, intervalle minimal).
+        no_schedule = {"min_interval_hours": None, "run_hours_utc": None}
+        sources = [
+            s.model_copy(update={"enabled": True, "options": {**s.options, **no_schedule}})
+            if s.id in wanted else s.model_copy(update={"enabled": False})
+            for s in sources
+        ]
     if args.max_details is not None:
         sources = [s.model_copy(update={"max_details_per_run": args.max_details}) for s in sources]
     return sources

@@ -89,8 +89,11 @@ def publish(
     for x in sorted(state.listings.values(), key=lambda x: x.first_seen_at, reverse=True):
         if x.status == ListingStatus.GONE or not x.department:
             continue
+        source = src_by_id.get(x.source_id)
+        if source is not None and source.hide_unavailable and x.status != ListingStatus.ACTIVE:
+            continue  # annonce retirée de la source : disparaît de l'affichage (obligation de retrait rapide)
         demo = demo or x.is_demo
-        by_dep[x.department].append(public_listing(x, src_by_id.get(x.source_id), maybe.get(x.id, [])))
+        by_dep[x.department].append(public_listing(x, source, maybe.get(x.id, [])))
 
     dep_entries = []
     for dep in departments:
@@ -112,6 +115,7 @@ def publish(
                 "departments": s.departments, "method": s.method if s.method != "adapter" else f"adapter:{s.adapter}",
                 "enabled": s.enabled, "compatibility": s.compatibility.value, "is_demo": s.is_demo,
                 "last_attempt_at": st.last_attempt_at if st else None,
+                "attribution": s.attribution,
                 "last_success_at": st.last_success_at if st else None,
                 "last_status": st.last_status if st else None,
                 "listings_count": st.listings_count if st else 0,

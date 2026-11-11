@@ -678,3 +678,63 @@ def test_min_interval_hours_skips_recently_attempted_sources(tmp_path):
     assert _due(plain, state)  # sans l'option : toujours collectée
     state.source_state("lourde").last_attempt_at = "2026-01-01T00:00:00Z"
     assert _due(heavy, state)  # intervalle écoulé
+
+
+def test_figaro_generic_list_is_ignored_when_commune_has_no_such_listing(geo, departments):
+    """Commune sans location : Figaro renvoie une liste générique d'autres communes (CP différents)."""
+    base = "https://fi.example/annonces/immobilier-location-bien-ville-test+92000.html"
+    generic = [_figaro_item(i, location={"city": "Ailleurs (75)", "postalCode": "75001"}) for i in range(1, 5)]
+    site = FakeSite({base: _figaro_page(generic, 1, 100), base + "?page=2": _figaro_page(generic, 2, 100)})
+    src = make_source(id="figaro", method="adapter", adapter="figaro", domain="fi.example", url="https://fi.example",
+                      options={"list_pages": [base], "max_pages": 40})
+    conn = build_connector(src, make_ctx(site.client(), geo, {"92"}))
+    assert list(conn.discover()) == []
+    assert not any(u.endswith("page=2") for u in site.hits)  # aucune des 100 pages génériques n'est lue
+
+    ok = [_figaro_item(1), _figaro_item(2, location={"city": "Ville-Test (92)", "postalCode": "92000"})]
+    site2 = FakeSite({base: _figaro_page(ok, 1, 1)})
+    conn2 = build_connector(src, make_ctx(site2.client(), geo, {"92"}))
+    assert [r.source_ref for r in conn2.discover()] == ["1", "2"]  # liste conforme : lue normalement
+
+
+def test_figaro_configuration_is_split_into_four_disjoint_nightly_lots():
+    import re as _re
+
+    from collector.config import load_sources
+
+    lots = [s for s in load_sources() if s.id.startswith("figaro-immobilier")]
+    assert [s.id for s in lots] == ["figaro-immobilier", "figaro-immobilier-2", "figaro-immobilier-3", "figaro-immobilier-4"]
+    urls = [u for s in lots for u in s.options["list_pages"]]
+    assert len(urls) == len(set(urls)) == 71  # 36 communes en vente + 35 en location, aucune liste en double
+    communes = {(_re.search(r"-bien-(.+)\.html$", u)[1]) for u in urls}
+    assert len(communes) == 36 and any(c.endswith("+92700") for c in communes)  # tout le 92, dont Colombes
+    assert any("immobilier-vente-bien-colombes+92700" in u for u in lots[0].options["list_pages"])  # Colombes reste dans le lot d'origine
+    assert not any("marnes+la+coquette+92430" in u and "location" in u for u in urls)  # liste générique connue, exclue
+    hours = [set(s.options["run_hours_utc"]) for s in lots]
+    assert all(len(h) == 3 for h in hours) and len(set().union(*hours)) == 12  # 4 plages de 3 h, sans chevauchement
+    for s in lots:
+        assert s.attribution == "Source : Figaro Immobilier" and s.hide_unavailable and s.rate_limit_seconds >= 3
+        assert s.options["min_interval_hours"] >= 20 and all(_re.search(r"\+\d{5}\.html$", u) for u in s.options["list_pages"])
+
+
+def test_run_hours_utc_and_forced_runs(tmp_path, monkeypatch):
+    import argparse
+
+    from collector import collect
+    from collector.cli import _filter_sources
+    from collector.config import CONFIG_DIR
+    from collector.pipeline.state import State
+
+    state = State(tmp_path)
+    night = make_source(id="nuit", options={"run_hours_utc": [0, 1, 2]})
+    monkeypatch.setattr(collect, "now_iso", lambda: "2026-11-11T01:17:00Z")
+    assert collect._due(night, state)  # dans la plage (même avec un retard du déclenchement)
+    monkeypatch.setattr(collect, "now_iso", lambda: "2026-11-11T14:17:00Z")
+    assert not collect._due(night, state)  # hors plage
+
+    # Une exécution explicite (--sources) ignore le calendrier mais pas le reste de la configuration.
+    args = argparse.Namespace(config=str(CONFIG_DIR), sources="figaro-immobilier", max_details=None)
+    forced = next(s for s in _filter_sources(args) if s.id == "figaro-immobilier")
+    assert forced.enabled and forced.options["run_hours_utc"] is None and forced.options["min_interval_hours"] is None
+    assert forced.options["list_pages"] and forced.attribution == "Source : Figaro Immobilier"
+    assert collect._due(forced, state)

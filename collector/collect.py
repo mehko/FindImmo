@@ -50,19 +50,26 @@ def _priority(ref: ListingRef, state: State, refresh_before: str) -> tuple[int, 
 
 
 def _due(source: SourceConfig, state: State) -> bool:
-    """Option ``min_interval_hours`` : écart minimal entre deux tentatives sur une source lourde ou sensible.
+    """Options de calendrier d'une source lourde ou sensible, appliquées avant toute requête :
+
+    * ``run_hours_utc`` : liste d'heures UTC pendant lesquelles la source peut tourner (ex. ``[0, 1, 2]`` = la nuit) ;
+      une plage de plusieurs heures absorbe le retard des déclenchements planifiés ;
+    * ``min_interval_hours`` : écart minimal entre deux tentatives.
 
     Une source ignorée n'a pas de lot : le traitement ne la voit pas et ses annonces ne changent pas de statut."""
-    hours = source.options.get("min_interval_hours")
+    hours = source.options.get("run_hours_utc")
+    if hours and parse_iso(now_iso()).hour not in {int(h) for h in hours}:
+        return False
+    interval = source.options.get("min_interval_hours")
     known = state.sources.get(source.id)
     attempt = known.last_attempt_at if known else None
-    if not hours or not attempt:
+    if not interval or not attempt:
         return True
     elapsed = parse_iso(now_iso()) - parse_iso(attempt)
-    if elapsed >= timedelta(hours=float(hours)):
+    if elapsed >= timedelta(hours=float(interval)):
         return True
     log(logger, logging.INFO, "source ignorée : intervalle minimal non écoulé", source=source.id,
-        hours_since_last=round(elapsed.total_seconds() / 3600, 1), min_interval_hours=hours)
+        hours_since_last=round(elapsed.total_seconds() / 3600, 1), min_interval_hours=interval)
     return False
 
 

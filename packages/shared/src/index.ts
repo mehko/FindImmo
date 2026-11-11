@@ -145,6 +145,8 @@ export interface SourceInfo {
   enabled: boolean;
   compatibility: string;
   is_demo: boolean;
+  /** Mention de source à afficher avec chaque annonce de cette source (ex. « Source : Figaro Immobilier »). */
+  attribution?: string | null;
   last_success_at: string | null;
   last_status: string | null;
   listings_count: number;

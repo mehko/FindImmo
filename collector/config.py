@@ -56,6 +56,10 @@ class SourceConfig(BaseModel):
     is_demo: bool = False
     options: dict[str, Any] = Field(default_factory=dict)
     publish: PublishPolicy = Field(default_factory=PublishPolicy)
+    # Mention de source affichée avec chaque annonce (ex. « Source : Figaro Immobilier »), exigée par certains accords.
+    attribution: str | None = None
+    # Ne pas publier les annonces qui ne sont plus « actives » (retrait de la source à répercuter rapidement).
+    hide_unavailable: bool = False
     notes: str | None = None
 
 
