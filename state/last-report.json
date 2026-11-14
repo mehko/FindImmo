@@ -1,0 +1,364 @@
+{
+ "generated_at": "2026-11-14T10:43:40Z",
+ "duration_seconds": 394.6,
+ "sources_analyzed": 19,
+ "sources_ok": 16,
+ "sources_partial": 2,
+ "sources_error": 1,
+ "listings_observed": 7948,
+ "new_listings": 248,
+ "price_drops": 1,
+ "price_increases": 0,
+ "features_changed": 0,
+ "unavailable": 155,
+ "reappeared": 11,
+ "gone": 0,
+ "duplicate_groups": 122,
+ "possible_duplicates": 2518,
+ "active_listings": 7949,
+ "sources": [
+  {
+   "source_id": "act-immo",
+   "started_at": "2026-11-14T10:36:46Z",
+   "finished_at": "2026-11-14T10:39:18Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 149,
+   "refs_in_scope": 149,
+   "details_fetched": 100,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 149
+   }
+  },
+  {
+   "source_id": "asm-immobilier",
+   "started_at": "2026-11-14T10:36:50Z",
+   "finished_at": "2026-11-14T10:39:08Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 498,
+   "refs_in_scope": 248,
+   "details_fetched": 89,
+   "details_failed": 2,
+   "removed": 0,
+   "backlog": 2,
+   "errors": [
+    "aucune donnée exploitable : https://www.asm-immobilier.fr/bien/maison-de-ville-3-pieces-meuble-62-m2-courbevoie-avec-terrasse-2/ [588944 o, titre « Maison de ville 3 pièces meublé 62 m2 Courbevoie avec Terrasse », JSON-LD×2]",
+    "aucune donnée exploitable : https://www.asm-immobilier.fr/bien/duplex-penthouse-roof-top-neuf-bord-de-seine-puteaux-neuilly/ [603879 o, titre « DUPLEX PENTHOUSE ROOF TOP neuf Bord de seine PUTEAUX NEUILLY », JSON-LD×2]"
+   ],
+   "events": {
+    "observed": 246
+   }
+  },
+  {
+   "source_id": "citya",
+   "started_at": "2026-11-14T10:36:46Z",
+   "finished_at": "2026-11-14T10:36:50Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 17880,
+   "refs_in_scope": 1467,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 1467
+   }
+  },
+  {
+   "source_id": "hosman",
+   "started_at": "2026-11-14T10:36:51Z",
+   "finished_at": "2026-11-14T10:37:29Z",
+   "ok": true,
+   "discovery_complete": false,
+   "refs_discovered": 61,
+   "refs_in_scope": 62,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 61
+   }
+  },
+  {
+   "source_id": "impact-immo",
+   "started_at": "2026-11-14T10:36:46Z",
+   "finished_at": "2026-11-14T10:37:40Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 604,
+   "refs_in_scope": 544,
+   "details_fetched": 33,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 544
+   }
+  },
+  {
+   "source_id": "remax",
+   "started_at": "2026-11-14T10:36:46Z",
+   "finished_at": "2026-11-14T10:36:51Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 2957,
+   "refs_in_scope": 164,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 164
+   }
+  },
+  {
+   "source_id": "arthurimmo-colombes",
+   "started_at": "2026-11-14T10:36:51Z",
+   "finished_at": "2026-11-14T10:36:53Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 17,
+   "refs_in_scope": 17,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 17
+   }
+  },
+  {
+   "source_id": "century21-beaurepaire-colombes",
+   "started_at": "2026-11-14T10:36:48Z",
+   "finished_at": "2026-11-14T10:37:02Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 39,
+   "refs_in_scope": 39,
+   "details_fetched": 5,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 39
+   }
+  },
+  {
+   "source_id": "coeuretimmobilier",
+   "started_at": "2026-11-14T10:37:02Z",
+   "finished_at": "2026-11-14T10:37:03Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 13,
+   "refs_in_scope": 10,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 10
+   }
+  },
+  {
+   "source_id": "eraimmobilier",
+   "started_at": "2026-11-14T10:36:54Z",
+   "finished_at": "2026-11-14T10:38:04Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 447,
+   "refs_in_scope": 447,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "new": 3,
+    "observed": 447
+   }
+  },
+  {
+   "source_id": "figaro-immobilier-4",
+   "started_at": "2026-11-14T10:37:32Z",
+   "finished_at": "2026-11-14T10:37:35Z",
+   "ok": false,
+   "discovery_complete": false,
+   "refs_discovered": 0,
+   "refs_in_scope": 0,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [
+    "bloqué : protection anti-bot ou accès refusé (403) : https://immobilier.lefigaro.fr/annonces/immobilier-location-bien-bourg+la+reine+92340.html"
+   ],
+   "events": {}
+  },
+  {
+   "source_id": "futurtransactions-colombes",
+   "started_at": "2026-11-14T10:36:51Z",
+   "finished_at": "2026-11-14T10:36:54Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 63,
+   "refs_in_scope": 21,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 21
+   }
+  },
+  {
+   "source_id": "gridimmo",
+   "started_at": "2026-11-14T10:37:22Z",
+   "finished_at": "2026-11-14T10:37:24Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 41,
+   "refs_in_scope": 41,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 41
+   }
+  },
+  {
+   "source_id": "human-immobilier",
+   "started_at": "2026-11-14T10:36:48Z",
+   "finished_at": "2026-11-14T10:36:51Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 24,
+   "refs_in_scope": 18,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 18,
+    "unavailable": 4
+   }
+  },
+  {
+   "source_id": "immodurand",
+   "started_at": "2026-11-14T10:37:03Z",
+   "finished_at": "2026-11-14T10:37:22Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 101,
+   "refs_in_scope": 33,
+   "details_fetched": 2,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "new": 1,
+    "observed": 33
+   }
+  },
+  {
+   "source_id": "laforet",
+   "started_at": "2026-11-14T10:36:48Z",
+   "finished_at": "2026-11-14T10:43:20Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 27948,
+   "refs_in_scope": 7827,
+   "details_fetched": 234,
+   "details_failed": 13,
+   "removed": 3,
+   "backlog": 3400,
+   "errors": [
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-05/appartement-3-pieces-53009216 [148168 o, titre « Achat appartement PARIS - 3 pièce(s) - 82 m² - 1 150 000 € | Laforêt PARIS 6EME  », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-06/appartement-3-pieces-53003853 [146828 o, titre « Achat appartement PARIS - 3 pièce(s) - 77 m² - 1 360 000 € | Laforêt PARIS 6EME  », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/le-touquet-paris-plage/acheter/saint-aubin/maison-6-pieces-52977983 [136025 o, titre « Achat maison SAINT AUBIN - 6 pièce(s) - 167 m² - 449 900 € | Laforêt LE TOUQUET- », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-06/appartement-1-piece-52966987 [145105 o, titre « Achat appartement PARIS - 1 pièce(s) - 20 m² - 252 000 € | Laforêt PARIS 6EME ⇔  », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-06/appartement-1-piece-52940654 [144411 o, titre « Achat appartement PARIS - 1 pièce(s) - 18 m² - 300 000 € | Laforêt PARIS 6EME ⇔  », JSON-LD×1]"
+   ],
+   "events": {
+    "new": 232,
+    "out_of_scope": 2,
+    "observed": 4422,
+    "reappeared": 5,
+    "unavailable": 134
+   }
+  },
+  {
+   "source_id": "lesagentsdelimmobilier",
+   "started_at": "2026-11-14T10:36:53Z",
+   "finished_at": "2026-11-14T10:37:44Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 332,
+   "refs_in_scope": 211,
+   "details_fetched": 33,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "new": 12,
+    "reappeared": 6,
+    "price_drops": 1,
+    "observed": 211,
+    "unavailable": 17
+   }
+  },
+  {
+   "source_id": "louzi-immobilier",
+   "started_at": "2026-11-14T10:37:24Z",
+   "finished_at": "2026-11-14T10:37:32Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 38,
+   "refs_in_scope": 38,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 38
+   }
+  },
+  {
+   "source_id": "nciplus",
+   "started_at": "2026-11-14T10:36:48Z",
+   "finished_at": "2026-11-14T10:36:51Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 20,
+   "refs_in_scope": 20,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 20
+   }
+  }
+ ]
+}
