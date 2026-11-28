@@ -1,0 +1,367 @@
+{
+ "generated_at": "2026-11-28T08:05:02Z",
+ "duration_seconds": 392.1,
+ "sources_analyzed": 19,
+ "sources_ok": 15,
+ "sources_partial": 3,
+ "sources_error": 1,
+ "listings_observed": 9652,
+ "new_listings": 235,
+ "price_drops": 1,
+ "price_increases": 1,
+ "features_changed": 2,
+ "unavailable": 157,
+ "reappeared": 21,
+ "gone": 8,
+ "duplicate_groups": 148,
+ "possible_duplicates": 2999,
+ "active_listings": 9657,
+ "sources": [
+  {
+   "source_id": "act-immo",
+   "started_at": "2026-11-28T07:58:05Z",
+   "finished_at": "2026-11-28T08:00:37Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 153,
+   "refs_in_scope": 153,
+   "details_fetched": 100,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 153
+   }
+  },
+  {
+   "source_id": "asm-immobilier",
+   "started_at": "2026-11-28T07:58:18Z",
+   "finished_at": "2026-11-28T07:58:23Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 99,
+   "refs_in_scope": 65,
+   "details_fetched": 0,
+   "details_failed": 1,
+   "removed": 0,
+   "backlog": 1,
+   "errors": [
+    "aucune donnée exploitable : https://www.asm-immobilier.fr/bien/maison-de-ville-3-pieces-meuble-62-m2-courbevoie-avec-terrasse-2/ [667326 o, titre « Maison de ville 3 pièces meublé 62 m2 Courbevoie av… | ASM », JSON-LD×2]"
+   ],
+   "events": {
+    "observed": 64
+   }
+  },
+  {
+   "source_id": "citya",
+   "started_at": "2026-11-28T07:58:05Z",
+   "finished_at": "2026-11-28T08:04:21Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 18272,
+   "refs_in_scope": 1510,
+   "details_fetched": 248,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "features_changed": 2,
+    "price_drops": 1,
+    "price_increases": 1,
+    "observed": 1510,
+    "unavailable": 2
+   }
+  },
+  {
+   "source_id": "hosman",
+   "started_at": "2026-11-28T07:58:23Z",
+   "finished_at": "2026-11-28T07:59:02Z",
+   "ok": true,
+   "discovery_complete": false,
+   "refs_discovered": 51,
+   "refs_in_scope": 56,
+   "details_fetched": 1,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 51
+   }
+  },
+  {
+   "source_id": "impact-immo",
+   "started_at": "2026-11-28T07:58:05Z",
+   "finished_at": "2026-11-28T07:59:09Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 682,
+   "refs_in_scope": 616,
+   "details_fetched": 40,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 616
+   }
+  },
+  {
+   "source_id": "remax",
+   "started_at": "2026-11-28T07:58:05Z",
+   "finished_at": "2026-11-28T07:58:18Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 2983,
+   "refs_in_scope": 161,
+   "details_fetched": 6,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 161,
+    "gone": 6
+   }
+  },
+  {
+   "source_id": "arthurimmo-colombes",
+   "started_at": "2026-11-28T07:58:14Z",
+   "finished_at": "2026-11-28T07:58:16Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 18,
+   "refs_in_scope": 18,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 18
+   }
+  },
+  {
+   "source_id": "century21-beaurepaire-colombes",
+   "started_at": "2026-11-28T07:58:08Z",
+   "finished_at": "2026-11-28T07:58:28Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 37,
+   "refs_in_scope": 37,
+   "details_fetched": 9,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "new": 1,
+    "observed": 37
+   }
+  },
+  {
+   "source_id": "coeuretimmobilier",
+   "started_at": "2026-11-28T07:58:28Z",
+   "finished_at": "2026-11-28T07:58:30Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 11,
+   "refs_in_scope": 8,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 8
+   }
+  },
+  {
+   "source_id": "eraimmobilier",
+   "started_at": "2026-11-28T07:58:17Z",
+   "finished_at": "2026-11-28T07:59:20Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 403,
+   "refs_in_scope": 403,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 403,
+    "gone": 2
+   }
+  },
+  {
+   "source_id": "figaro-immobilier-3",
+   "started_at": "2026-11-28T07:58:45Z",
+   "finished_at": "2026-11-28T07:58:48Z",
+   "ok": false,
+   "discovery_complete": false,
+   "refs_discovered": 0,
+   "refs_in_scope": 0,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [
+    "bloqué : protection anti-bot ou accès refusé (403) : https://immobilier.lefigaro.fr/annonces/immobilier-vente-bien-asnieres+sur+seine+92600.html"
+   ],
+   "events": {}
+  },
+  {
+   "source_id": "futurtransactions-colombes",
+   "started_at": "2026-11-28T07:58:14Z",
+   "finished_at": "2026-11-28T07:58:17Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 61,
+   "refs_in_scope": 20,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 20
+   }
+  },
+  {
+   "source_id": "gridimmo",
+   "started_at": "2026-11-28T07:58:35Z",
+   "finished_at": "2026-11-28T07:58:37Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 0,
+   "refs_in_scope": 0,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [
+    "aucune référence découverte"
+   ],
+   "events": {}
+  },
+  {
+   "source_id": "human-immobilier",
+   "started_at": "2026-11-28T07:58:08Z",
+   "finished_at": "2026-11-28T07:58:14Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 32,
+   "refs_in_scope": 23,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 23
+   }
+  },
+  {
+   "source_id": "immodurand",
+   "started_at": "2026-11-28T07:58:30Z",
+   "finished_at": "2026-11-28T07:58:35Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 101,
+   "refs_in_scope": 35,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 35
+   }
+  },
+  {
+   "source_id": "laforet",
+   "started_at": "2026-11-28T07:58:08Z",
+   "finished_at": "2026-11-28T08:04:36Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 27981,
+   "refs_in_scope": 7792,
+   "details_fetched": 234,
+   "details_failed": 15,
+   "removed": 1,
+   "backlog": 1497,
+   "errors": [
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-06/appartement-5-pieces-53029169 [149285 o, titre « Achat appartement PARIS - 5 pièce(s) - 93 m² - 1 360 000 € | Laforêt PARIS 6EME  », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-14/appartement-2-pieces-53017921 [151487 o, titre « Achat appartement PARIS - 2 pièce(s) - 39 m² - 588 000 € | Laforêt PARIS 6EME -  », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/le-touquet-paris-plage/acheter/montreuil/maison-5-pieces-53017465 [143227 o, titre « Achat maison MONTREUIL SUR MER - 5 pièce(s) - 97 m² - 246 000 € | Laforêt LE TOU », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-05/appartement-3-pieces-53009216 [148109 o, titre « Achat appartement PARIS - 3 pièce(s) - 83 m² - 1 150 000 € | Laforêt PARIS 6EME  », JSON-LD×1]",
+    "aucune donnée exploitable : https://www.laforet.com/agence-immobiliere/paris6/acheter/paris-06/appartement-3-pieces-53003853 [146615 o, titre « Achat appartement PARIS - 3 pièce(s) - 77 m² - 1 360 000 € | Laforêt PARIS 6EME  », JSON-LD×1]"
+   ],
+   "events": {
+    "new": 231,
+    "out_of_scope": 3,
+    "observed": 6291,
+    "reappeared": 12,
+    "unavailable": 146
+   }
+  },
+  {
+   "source_id": "lesagentsdelimmobilier",
+   "started_at": "2026-11-28T07:58:16Z",
+   "finished_at": "2026-11-28T07:58:45Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 337,
+   "refs_in_scope": 211,
+   "details_fetched": 18,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "out_of_scope": 3,
+    "new": 3,
+    "reappeared": 9,
+    "observed": 208,
+    "unavailable": 9
+   }
+  },
+  {
+   "source_id": "louzi-immobilier",
+   "started_at": "2026-11-28T07:58:37Z",
+   "finished_at": "2026-11-28T07:58:45Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 38,
+   "refs_in_scope": 38,
+   "details_fetched": 0,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 38
+   }
+  },
+  {
+   "source_id": "nciplus",
+   "started_at": "2026-11-28T07:58:08Z",
+   "finished_at": "2026-11-28T07:58:14Z",
+   "ok": true,
+   "discovery_complete": true,
+   "refs_discovered": 16,
+   "refs_in_scope": 16,
+   "details_fetched": 2,
+   "details_failed": 0,
+   "removed": 0,
+   "backlog": 0,
+   "errors": [],
+   "events": {
+    "observed": 16
+   }
+  }
+ ]
+}
